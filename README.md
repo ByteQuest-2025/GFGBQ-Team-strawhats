@@ -13,7 +13,8 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 
 ### Key Features
 
-- **AI-Powered Classification**: Automatically detects complaint category using NLP
+- **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
+- **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
 - **Smart Prioritization**: Urgency detection based on keywords and context
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
@@ -23,9 +24,13 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 ## 🏗️ Architecture
 
 ```
+├── AI-services/            # AI Microservices
+│   ├── classification/     # Hybrid DistilBERT Classifier
+│   └── similarity/         # SBERT Similarity Detection
+│
 ├── backend/                 # FastAPI Python Backend
 │   ├── app/
-│   │   ├── ai/             # AI/NLP Classification Module
+│   │   ├── services/       # AI Bridge Adapter
 │   │   ├── models/         # SQLAlchemy Database Models
 │   │   ├── routers/        # API Route Handlers
 │   │   ├── schemas/        # Pydantic Schemas
@@ -130,23 +135,25 @@ Frontend will run at: `http://localhost:3000`
 3. Monitor category breakdown and priority distribution
 4. Manage departments and SLA rules
 
-## 🧠 AI Classification
+## 🧠 AI Services Modules
 
-The AI module uses rule-based keyword classification optimized for hackathon demo:
+We have implemented **two advanced AI services** to make the platform intelligent and efficient:
 
-**Categories:**
-- Roads & Transport
-- Water Supply
-- Electricity
-- Sanitation & Waste
-- Health & Safety
+### 1. Hybrid Classification Service
+*   **Goal**: Automatically tag complaints (e.g., "Wire sparking" → "Electricity").
+*   **Tech**: **DistilBERT (Zero-Shot)** + **Rule-Based Fallback**.
+*   **Logic**:
+    1.  Uses `distilbert-base-uncased-mnli` to understand context.
+    2.  If confidence < 60%, falls back to keyword rules (Safety Net).
+    3.  Ensures **High Accuracy** vs **High Reliability**.
 
-**Priority Scoring:**
-```
-Priority = Urgency Keywords + Category Severity + Community Upvotes
-```
-
-> Architecture is designed for easy upgrade to DistilBERT/BERT models in production.
+### 2. Similarity Detection Service
+*   **Goal**: Detect duplicate complaints in real-time to save officer time.
+*   **Tech**: **SBERT (`all-MiniLM-L6-v2`)** + **Cosine Similarity**.
+*   **Logic**:
+    1.  Converts complaint text into 384-dimensional vector embeddings.
+    2.  Compares with existing database embeddings.
+    3.  Flags matches with > 75% semantic similarity (e.g., "Water leaking" ≈ "Burst pipe").
 
 ## 🛠️ Tech Stack
 
@@ -154,15 +161,17 @@ Priority = Urgency Keywords + Category Severity + Community Upvotes
 |-------|------------|
 | Frontend | Next.js 14, Tailwind CSS, Lucide Icons |
 | Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | SQLite (production-ready for PostgreSQL) |
+| Database | PostgreSQL |
 | Auth | JWT with bcrypt hashing |
-| AI/NLP | Rule-based classifier (ML-ready architecture) |
+| AI (Classification) | **DistilBERT** (Hugging Face Transformers) |
+| AI (Similarity) | **SBERT** (Sentence Transformers) |
 
 ## 🔮 Future Roadmap
 
 - [ ] Mobile app (React Native)
 - [ ] Voice complaint submission
-- [ ] DistilBERT classification model
+- [x] DistilBERT classification model (Implemented)
+- [x] Semantic Similarity Detection (Implemented)
 - [ ] Government API integrations
 - [ ] Multi-city support
 - [ ] WhatsApp/SMS notifications
@@ -195,4 +204,3 @@ Priority = Urgency Keywords + Category Severity + Community Upvotes
 
 ---
 
-*Built with ❤️ for Digital India*
