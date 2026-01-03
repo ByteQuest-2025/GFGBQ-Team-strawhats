@@ -39,12 +39,11 @@ export default function TrackGrievance() {
     };
 
     const getProgressWidth = (status) => {
-        switch (status) {
-            case 'Resolved': return 'w-full bg-green-500';
-            case 'In Progress': return 'w-1/2 bg-yellow-500';
-            case 'Rejected': return 'w-full bg-red-500';
-            default: return 'w-[5%] bg-red-500';
-        }
+        const s = String(status || '').toLowerCase().replace(/_/g, ' ');
+        if (s === 'resolved' || s === 'closed') return 'w-full bg-green-500';
+        if (s === 'in progress' || s === 'assigned') return 'w-1/2 bg-yellow-500';
+        if (s === 'rejected') return 'w-full bg-red-500';
+        return 'w-[10%] bg-blue-500'; // Pending
     };
 
     if (authLoading || loading) {

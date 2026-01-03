@@ -41,7 +41,9 @@ class Complaint(Base):
     is_public = Column(Boolean, default=True)
     
     # Attachments (store as JSON array of file paths)
-    attachments = Column(JSON, nullable=True)
+    attachments = Column(JSON, nullable=True)  # Citizen uploaded images
+    resolution_proof = Column(JSON, nullable=True)  # Officer uploaded proof images
+    resolution_remarks = Column(Text, nullable=True)  # Officer remarks when resolving
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

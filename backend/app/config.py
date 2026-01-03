@@ -18,9 +18,6 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
     # CORS
-    CORS_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
+    CORS_ORIGINS: list = ["*"]
 
 settings = Settings()
