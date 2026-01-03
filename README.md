@@ -13,8 +13,9 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 
 ### Key Features
 
-- **AI-Powered Classification**: Automatically detects complaint category using NLP
+- **AI-Powered Classification**: Automatically detects complaint category using Hybrid AI (Transformer + Rules)
 - **Smart Prioritization**: Urgency detection based on keywords and context
+- **Duplicate Detection**: Semantic search prevents redundant grievance submissions
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
 - **Community Upvoting**: Public complaints can be upvoted to boost priority
@@ -23,6 +24,7 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 ## 🏗️ Architecture
 
 ```
+├── AI-services/            # AI Microservices (Similarity & Classification)
 ├── backend/                 # FastAPI Python Backend
 │   ├── app/
 │   │   ├── ai/             # AI/NLP Classification Module
@@ -130,23 +132,22 @@ Frontend will run at: `http://localhost:3000`
 3. Monitor category breakdown and priority distribution
 4. Manage departments and SLA rules
 
-## 🧠 AI Classification
+## 🧠 Hybrid AI Engine
 
-The AI module uses rule-based keyword classification optimized for hackathon demo:
+The platform employs a robust two-layer AI system:
 
-**Categories:**
-- Roads & Transport
-- Water Supply
-- Electricity
-- Sanitation & Waste
-- Health & Safety
+1.  **Classification Pipeline**:
+    *   **Layer 1 (DistilBERT)**: Deep learning model understands context and nuance.
+    *   **Layer 2 (Rule-Based)**: Keyword fallback ensures reliability for edge cases.
 
-**Priority Scoring:**
-```
-Priority = Urgency Keywords + Category Severity + Community Upvotes
-```
+2.  **Similarity Engine**:
+    *   Uses **Sentence Transformers** to generate vector embeddings.
+    *   Detects semantic duplicates (e.g., "Water not coming" vs "No water supply") to prevent spam.
 
-> Architecture is designed for easy upgrade to DistilBERT/BERT models in production.
+3.  **Priority Scoring**:
+    ```
+    Priority = Urgency Keywords + Category Severity + Community Upvotes
+    ```
 
 ## 🛠️ Tech Stack
 
@@ -154,9 +155,9 @@ Priority = Urgency Keywords + Category Severity + Community Upvotes
 |-------|------------|
 | Frontend | Next.js 14, Tailwind CSS, Lucide Icons |
 | Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | SQLite (production-ready for PostgreSQL) |
+| Database | PostgreSQL |
 | Auth | JWT with bcrypt hashing |
-| AI/NLP | Rule-based classifier (ML-ready architecture) |
+| AI/NLP | DistilBERT, Sentence Transformers, Scikit-learn |
 
 ## 🔮 Future Roadmap
 
