@@ -1,128 +1,121 @@
-# Frontend Integration Guide: Similarity Detection
+# Frontend Integration Guide: AI Services
 
-This guide helps frontend developers integrate the **AI Similarity Detection Service** which detects potential duplicate complaints (e.g., "Water leaking" ≈ "Burst pipe").
+This guide helps frontend developers integrate the AI capabilities into the Grievance Reporting UI.
+
+## Overview
+We have two AI services available:
+1.  **Similarity Detection**: Finds duplicate complaints to prevent redundancy.
+2.  **Auto-Classification**: Automatically selects the complaint category (e.g., "Water", "Electricity").
 
 ---
 
-## 🚀 Integration Workflow
+## 🛠️ Feature 1: Similarity Detection (Duplicate Check)
 
-The similarity check should happen **in real-time** as the user types their complaint title or description, or just before they click "Submit".
+**Goal**: As the user types, check if a similar complaint already exists.
 
-### 1. API Endpoint Contract
-*(Assumed Backend Implementation based on `ai_bridge.py`)*
-
-There should be a backend endpoint (e.g., `POST /api/complaints/check-similarity`) that calls `ai_bridge.get_similar_complaints()`.
-
-**Request:**
+### 1. API Contract
+**Endpoint**: `POST /api/complaints/check-similarity`
+**Request**:
 ```json
-POST /api/complaints/check-similarity
-{
-  "text": "Water leaking near the school"
-}
+{ "text": "Water leaking near the school" }
 ```
-
-**Response:**
+**Response**:
 ```json
 {
-  "similar_found": true,   // true if any score > threshold
+  "similar_found": true,
   "matches": [
-    {
-      "complaint_id": 101,
-      "text": "Pipe burst near voltage transformer", 
-      "similarity_score": 0.82
-    }
+    { "complaint_id": 101, "text": "Pipe burst near voltage transformer", "similarity_score": 0.82 }
   ]
 }
 ```
 
----
-
-## 🎨 frontend UI/UX Recommendations
-
-### Option A: Real-time Suggestion (Best UX)
-As the user types the description, show a "Similar complaints found" alert if matches exist.
-
-- **Trigger:** Debounce input (wait 500ms after typing stops).
-- **UI:** Show a non-blocking dismissal card:
-  > ℹ️ *We found a similar complaint filed recently: "Pipe burst near school". Is this the same issue?*
-  >
-  > [Yes, Upvote it]   [No, Continue filing]
-
-### Option B: Pre-Submission Shield
-When the user clicks "Submit", run the check.
-
-- **Blocking:** If high similarity (> 90%), show a modal.
-  > ⚠️ *This looks like a duplicate!*
-  > *Someone already reported "Water leak". To avoid duplicates, we've upvoted that issue for you instead.*
-
----
-
-## ⚛️ React Example Implementation
-
+### 2. React Example (Debounced Check)
 ```javascript
-import { useState, useEffect } from 'react';
-import { useDebounce } from 'use-debounce'; // standard hook
+import { useDebounce } from 'use-debounce';
 
-function ComplaintForm() {
-  const [description, setDescription] = useState('');
-  const [debouncedText] = useDebounce(description, 500);
-  const [similarIssues, setSimilarIssues] = useState([]);
+// ... inside component
+const [debouncedText] = useDebounce(description, 500);
 
-  // 1. Check for similarity when user pauses typing
-  useEffect(() => {
-    if (debouncedText.length > 10) {
-      checkSimilarity(debouncedText);
-    }
-  }, [debouncedText]);
-
-  const checkSimilarity = async (text) => {
-    try {
-      const res = await fetch('/api/complaints/check-similarity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      const data = await res.json();
-      setSimilarIssues(data.matches || []);
-    } catch (err) {
-      console.error("AI Service Unavailable", err);
-    }
-  };
-
-  return (
-    <div className="form-container">
-      <textarea 
-        placeholder="Describe the issue..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-
-      {/* 2. Show Suggestions */}
-      {similarIssues.length > 0 && (
-        <div className="similarity-alert">
-          <h4>Wait! existing issues look similar:</h4>
-          <ul>
-            {similarIssues.map(issue => (
-              <li key={issue.complaint_id}>
-                <strong>#{issue.complaint_id}:</strong> {issue.text} 
-                <span className="score">({(issue.similarity_score * 100).toFixed(0)}% match)</span>
-                <button onClick={() => upvote(issue.complaint_id)}>That's it!</button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
+useEffect(() => {
+  if (debouncedText.length > 10) {
+    checkSimilarity(debouncedText);
+  }
+}, [debouncedText]);
 ```
 
 ---
 
-## 🎯 Key Design Values
+## 🏷️ Feature 2: Auto-Categorization
 
-| UX Goal | Recommendation |
-|:---|:---|
-| **Speed** | Use **Debouncing** (500-800ms) to avoid spamming the backend API. |
-| **Clarity** | Show the *matched text* so users can see WHY it matched. |
-| **Action** | Provide an **"Upvote"** button on the matched result to close the loop immediately. |
+**Goal**: Automatically select the defined category in the dropdown based on the description.
+
+### 1. API Contract
+**Endpoint**: `POST /api/complaints/classify`
+**Request**:
+```json
+{ "text": "Wire sparking near poll" }
+```
+**Response**:
+```json
+{
+  "category": "Electricity",
+  "confidence": 0.98,
+  "source": "ML" // or "Rule-Based"
+}
+```
+
+### 2. Integration Logic (UX Recommendation)
+
+**Scenario A: Auto-Fill (Recommended)**
+1.  User types description.
+2.  On `blur` (focus out) or `debounce` (pause), call API.
+3.  If `confidence > 0.8`, **automatically set** the Category Dropdown value.
+4.  If `confidence` is medium, show a "Suggested Category: Electricity" badge.
+
+```javascript
+const predictCategory = async (text) => {
+  const res = await fetch('/api/complaints/classify', {
+    method: 'POST',
+    body: JSON.stringify({ text })
+  });
+  const data = await res.json();
+  
+  if (data.confidence > 0.8) {
+    // Auto-select dropdown
+    setCategory(data.category);
+  } else {
+    // Show suggestion
+    setSuggestion(data.category);
+  }
+};
+```
+
+---
+
+## 🧩 Complete Hook Example (Copy-Paste)
+
+```javascript
+// hooks/useAIServices.js
+
+export function useAIServices() {
+  const checkSimilarity = async (text) => {
+    // ... implementation
+  };
+
+  const classifyComplaint = async (text) => {
+    try {
+      const res = await fetch('/api/complaints/classify', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }) 
+      });
+      return await res.json();
+    } catch (e) {
+      console.error("Classification failed", e);
+      return null;
+    }
+  };
+
+  return { checkSimilarity, classifyComplaint };
+}
+```
