@@ -41,7 +41,7 @@ class Team(Base):
     # Relationships
     department = relationship("Department", backref="teams")
     head_officer = relationship("User", foreign_keys=[head_officer_id])
-    assignments = relationship("TaskAssignment", back_populates="team")
+    assignments = relationship("TaskAssignment", back_populates="team", foreign_keys="TaskAssignment.team_id")
     
     def __repr__(self):
         return f"<Team {self.name} (Dept: {self.department_id})>"
