@@ -4,7 +4,10 @@ Handles department officer workflows - viewing and updating complaints
 """
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+import os
+import shutil
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
 
@@ -15,6 +18,10 @@ from ..models import (
     ComplaintStatusLog, Department
 )
 from ..schemas import ComplaintResponse, ComplaintUpdate, StatusLogResponse
+
+# Create uploads directory
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "proof")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/api/department", tags=["Department"])
 
@@ -225,3 +232,133 @@ async def get_complaint_history(
     ).order_by(ComplaintStatusLog.created_at).all()
     
     return [StatusLogResponse.model_validate(log) for log in logs]
+
+
+@router.post("/complaints/{complaint_id}/upload-proof")
+async def upload_resolution_proof(
+    complaint_id: int,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(require_officer),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload proof images for complaint resolution
+    Accepts up to 5 images, max 10MB each
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Check department access
+    if (
+        current_user.role == UserRole.OFFICER and
+        current_user.department_id and
+        complaint.department_id != current_user.department_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    if len(files) > 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 5 files allowed"
+        )
+    
+    uploaded_files = []
+    
+    for file in files:
+        # Validate file type
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File {file.filename} is not an image"
+            )
+        
+        # Generate unique filename
+        ext = os.path.splitext(file.filename)[1]
+        unique_name = f"{complaint_id}_{uuid.uuid4().hex}{ext}"
+        file_path = os.path.join(UPLOAD_DIR, unique_name)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        uploaded_files.append({
+            "filename": unique_name,
+            "original_name": file.filename,
+            "path": f"/uploads/proof/{unique_name}",
+            "uploaded_at": datetime.utcnow().isoformat()
+        })
+    
+    # Update complaint with proof images
+    existing_proof = complaint.resolution_proof or []
+    complaint.resolution_proof = existing_proof + uploaded_files
+    complaint.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(complaint)
+    
+    return {
+        "message": f"Successfully uploaded {len(uploaded_files)} proof image(s)",
+        "files": uploaded_files
+    }
+
+
+@router.post("/complaints/{complaint_id}/resolve")
+async def resolve_complaint_with_proof(
+    complaint_id: int,
+    remarks: str = Query(..., description="Resolution remarks"),
+    current_user: User = Depends(require_officer),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark complaint as resolved with remarks
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Check department access
+    if (
+        current_user.role == UserRole.OFFICER and
+        current_user.department_id and
+        complaint.department_id != current_user.department_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    # Update complaint
+    old_status = complaint.status
+    complaint.status = ComplaintStatus.RESOLVED
+    complaint.resolution_remarks = remarks
+    complaint.resolved_at = datetime.utcnow()
+    complaint.updated_at = datetime.utcnow()
+    
+    # Create status log
+    status_log = ComplaintStatusLog(
+        complaint_id=complaint.id,
+        status=ComplaintStatus.RESOLVED,
+        remarks=remarks,
+        updated_by=current_user.id
+    )
+    db.add(status_log)
+    
+    db.commit()
+    db.refresh(complaint)
+    
+    return {
+        "message": "Complaint resolved successfully",
+        "complaint": ComplaintResponse.model_validate(complaint)
+    }

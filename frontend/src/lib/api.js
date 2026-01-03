@@ -1,6 +1,6 @@
 // API client configuration for Samadhan Setu
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Get token from localStorage
 const getToken = () => {
@@ -44,6 +44,9 @@ export const setStoredUser = (user) => {
 // API request helper
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
+
+    // Debug: log token presence
+    console.log('API Request:', endpoint, 'Token:', token ? 'present' : 'missing');
 
     const headers = {
         'Content-Type': 'application/json',

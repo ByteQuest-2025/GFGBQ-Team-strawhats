@@ -36,20 +36,34 @@ class StatusLogResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class UserBasicResponse(BaseModel):
+    """Basic user info for complaint response"""
+    id: int
+    name: str
+    email: str
+    phone: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class ComplaintResponse(ComplaintBase):
     id: int
     user_id: int
     category: str
     priority: ComplaintPriority
     urgency_score: int
+    ai_confidence: Optional[int] = None
     status: ComplaintStatus
     department_id: Optional[int]
     upvotes: int
-    attachments: Optional[List[str]] = None
+    attachments: Optional[List] = None
+    resolution_proof: Optional[List] = None
+    resolution_remarks: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     resolved_at: Optional[datetime] = None
     status_logs: Optional[List[StatusLogResponse]] = []
+    user: Optional[UserBasicResponse] = None  # Citizen details
     
     class Config:
         from_attributes = True
