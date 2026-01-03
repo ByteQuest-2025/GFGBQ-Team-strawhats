@@ -1,10 +1,97 @@
 @import "tailwindcss";
 
+/* ===== CSS Variables for Theme Support ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode Colors */
+  --background: #f8fafc;
+  --background-secondary: #ffffff;
+  --background-tertiary: #f1f5f9;
+  --foreground: #0f172a;
+  --foreground-secondary: #475569;
+  --foreground-muted: #64748b;
+  
+  /* Card & Surface */
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --card-shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  
+  /* Input & Form */
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-focus: #3b82f6;
+  
+  /* Brand Colors */
+  --primary: #1e40af;
+  --primary-hover: #1e3a8a;
+  --primary-light: #dbeafe;
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  
+  /* Status Colors */
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #ca8a04;
+  --warning-bg: #fef9c3;
+  --error: #dc2626;
+  --error-bg: #fee2e2;
+  
+  /* Navigation */
+  --nav-bg: #1e3a8a;
+  --nav-text: #ffffff;
+  --nav-hover: #1e40af;
+  
+  /* Footer */
+  --footer-bg: #1e293b;
+  --footer-text: #94a3b8;
 }
 
+/* Dark Mode Colors */
+.dark {
+  --background: #0f172a;
+  --background-secondary: #1e293b;
+  --background-tertiary: #334155;
+  --foreground: #f1f5f9;
+  --foreground-secondary: #cbd5e1;
+  --foreground-muted: #94a3b8;
+  
+  /* Card & Surface */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --card-shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.3);
+  
+  /* Input & Form */
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --input-focus: #60a5fa;
+  
+  /* Brand Colors - slightly adjusted for dark mode */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: #1e3a8a;
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  
+  /* Status Colors */
+  --success: #22c55e;
+  --success-bg: #14532d;
+  --warning: #eab308;
+  --warning-bg: #422006;
+  --error: #ef4444;
+  --error-bg: #450a0a;
+  
+  /* Navigation */
+  --nav-bg: #0f172a;
+  --nav-text: #f1f5f9;
+  --nav-hover: #1e293b;
+  
+  /* Footer */
+  --footer-bg: #020617;
+  --footer-text: #64748b;
+}
+
+/* ===== Global Theme Styles ===== */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,15 +99,150 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ===== Utility Classes ===== */
+
+/* Backgrounds */
+.bg-theme { background-color: var(--background); }
+.bg-theme-secondary { background-color: var(--background-secondary); }
+.bg-theme-tertiary { background-color: var(--background-tertiary); }
+.bg-theme-card { background-color: var(--card-bg); }
+
+/* Text */
+.text-theme { color: var(--foreground); }
+.text-theme-secondary { color: var(--foreground-secondary); }
+.text-theme-muted { color: var(--foreground-muted); }
+
+/* Borders */
+.border-theme { border-color: var(--card-border); }
+.border-theme-input { border-color: var(--input-border); }
+
+/* Cards */
+.card-theme {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.card-theme-elevated {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow-lg);
+}
+
+/* Inputs */
+.input-theme {
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--foreground);
+}
+
+.input-theme:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.input-theme::placeholder {
+  color: var(--foreground-muted);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* Navigation */
+.nav-theme {
+  background-color: var(--nav-bg);
+  color: var(--nav-text);
+}
+
+/* Footer */
+.footer-theme {
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+}
+
+/* ===== Light Mode Enhancements ===== */
+:root {
+  /* Subtle gradient backgrounds for premium feel */
+  --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  --gradient-card-hover: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(139,92,246,0.05) 100%);
+}
+
+.dark {
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  --gradient-card-hover: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%);
+}
+
+/* Premium card hover effect */
+.card-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-lg);
+  background: var(--gradient-card-hover);
+}
+
+/* Smooth transitions for theme switch */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.15s;
+  transition-timing-function: ease-out;
+}
+
+/* Disable transitions on page load to prevent flash */
+.no-transitions * {
+  transition: none !important;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--input-focus);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--foreground-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-secondary);
 }
