@@ -16,6 +16,7 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 - **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
 - **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
 - **Smart Prioritization**: Urgency detection based on keywords and context
+- **Duplicate Detection**: Semantic search prevents redundant grievance submissions
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
 - **Community Upvoting**: Public complaints can be upvoted to boost priority
@@ -154,6 +155,11 @@ We have implemented **two advanced AI services** to make the platform intelligen
     1.  Converts complaint text into 384-dimensional vector embeddings.
     2.  Compares with existing database embeddings.
     3.  Flags matches with > 75% semantic similarity (e.g., "Water leaking" ≈ "Burst pipe").
+
+### 3. Priority Scoring
+```
+Priority = Urgency Keywords + Category Severity + Community Upvotes
+```
 
 ## 🛠️ Tech Stack
 
