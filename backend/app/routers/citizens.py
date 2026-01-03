@@ -70,6 +70,13 @@ async def submit_complaint(
     db.commit()
     db.refresh(new_complaint)
     
+    # AI Team Assignment (Feature 1)
+    from ..services.assignment_optimizer import assign_complaint
+    assignment_result = assign_complaint(db, new_complaint)
+    # Log assignment result (non-blocking, doesn't fail submission)
+    if assignment_result.get("success"):
+        print(f"AI Assignment: Complaint #{new_complaint.id} -> Team {assignment_result.get('team_name')}")
+    
     # Create initial status log
     status_log = ComplaintStatusLog(
         complaint_id=new_complaint.id,

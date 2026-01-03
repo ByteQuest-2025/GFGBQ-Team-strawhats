@@ -42,7 +42,7 @@ export default function LodgeGrievance() {
                     const result = await complaintsAPI.previewAI(description);
                     setAiCategory(result.category || 'General');
                     setAiPriority(result.priority || 'Low');
-                    setAiConfidence(Math.round(result.confidence * 100) || 0);
+                    setAiConfidence(Math.round(result.confidence) || 0);
                 } catch (err) {
                     console.log('AI preview failed:', err);
                     // Show fallback values

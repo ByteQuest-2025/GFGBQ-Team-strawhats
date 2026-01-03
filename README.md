@@ -15,8 +15,9 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 
 - **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
 - **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
+- **🆕 AI Auto-Assignment**: Load-balanced team assignment with SLA-aware reassignment
+- **🆕 AI Heatmap Analytics**: Issue density visualization by category and locality
 - **Smart Prioritization**: Urgency detection based on keywords and context
-- **Duplicate Detection**: Semantic search prevents redundant grievance submissions
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
 - **Community Upvoting**: Public complaints can be upvoted to boost priority
@@ -31,9 +32,9 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 │
 ├── backend/                 # FastAPI Python Backend
 │   ├── app/
-│   │   ├── services/       # AI Bridge Adapter
-│   │   ├── models/         # SQLAlchemy Database Models
-│   │   ├── routers/        # API Route Handlers
+│   │   ├── services/       # AI Services (Auto-Assignment, Heatmap, Clustering)
+│   │   ├── models/         # SQLAlchemy Models (+ Teams, TaskAssignments)
+│   │   ├── routers/        # API Routes (+ Assignments, Analytics)
 │   │   ├── schemas/        # Pydantic Schemas
 │   │   └── main.py         # FastAPI Application
 │   └── seed_data.py        # Demo Data Seeder
@@ -156,7 +157,27 @@ We have implemented **two advanced AI services** to make the platform intelligen
     2.  Compares with existing database embeddings.
     3.  Flags matches with > 75% semantic similarity (e.g., "Water leaking" ≈ "Burst pipe").
 
-### 3. Priority Scoring
+### 3. AI Auto-Assignment Service 🆕
+*   **Goal**: Automatically assign complaints to optimal team based on workload.
+*   **Tech**: Load-Scoring Algorithm + SLA Awareness.
+*   **Logic**:
+    ```
+    Load Score = (active_tasks / capacity) + priority_weight + deadline_pressure
+    ```
+    1.  Calculates load score for each available team.
+    2.  Assigns to team with lowest score that covers the ward.
+    3.  Auto-reassigns if SLA breach risk detected.
+
+### 4. AI Heatmap Analytics Service 🆕
+*   **Goal**: Visualize issue density for proactive governance.
+*   **Tech**: Aggregation + Semantic Clustering.
+*   **Features**:
+    *   Category-wise heatmaps (which issues are most common)
+    *   Locality-wise heatmaps (which areas have most issues)
+    *   Recurring issue detection (identify systemic problems)
+    *   Time-trend analysis
+
+### 5. Priority Scoring
 ```
 Priority = Urgency Keywords + Category Severity + Community Upvotes
 ```
@@ -203,6 +224,19 @@ Priority = Urgency Keywords + Category Severity + Community Upvotes
 - `GET /api/admin/stats` - Dashboard statistics
 - `GET /api/admin/departments` - List departments
 - `POST /api/admin/mappings` - Create category mapping
+
+### Assignments 🆕
+- `GET /api/assignments/teams` - List all teams
+- `GET /api/assignments/team/{id}` - Get team's assignments
+- `POST /api/assignments/{id}/override` - Manual override
+- `POST /api/assignments/check-reassignments` - Trigger AI check
+
+### Analytics 🆕
+- `GET /api/analytics/heatmap/category` - Category heatmap
+- `GET /api/analytics/heatmap/locality` - Locality heatmap
+- `GET /api/analytics/clusters` - Similar complaint clusters
+- `GET /api/analytics/recurring-issues` - Recurring patterns
+- `GET /api/analytics/summary` - Dashboard summary
 
 ## 👥 Team
 

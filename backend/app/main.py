@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import init_db
-from .routers import auth_router, citizens_router, departments_router, admin_router
+from .routers import auth_router, citizens_router, departments_router, admin_router, assignments_router, analytics_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -39,6 +39,8 @@ app.include_router(auth_router)
 app.include_router(citizens_router)
 app.include_router(departments_router)
 app.include_router(admin_router)
+app.include_router(assignments_router)
+app.include_router(analytics_router)
 
 
 @app.on_event("startup")
