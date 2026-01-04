@@ -1,285 +1,71 @@
-# 🌉 Samadhan Setu
+## 🏛️ PS-12: AI for Grievance Redressal in Public Governance
 
-**AI-Powered Grievance Redressal Platform**
+### 📌 Problem Statement
 
-*Bridging Citizens and Government through AI*
+Public governance bodies receive **thousands of citizen grievances every day**, covering a wide range of public services, including:
 
-![Status](https://img.shields.io/badge/Status-Hackathon%20Ready-green)
-![Stack](https://img.shields.io/badge/Stack-FastAPI%20%2B%20Next.js-blue)
+- Civic infrastructure (roads, drainage, streetlights)
+- Sanitation and waste management
+- Public safety and utilities (water, electricity)
+- Healthcare and education services
+- Administrative delays and service inefficiencies
 
-## 🎯 Overview
+These grievances typically face the following challenges:
 
-Samadhan Setu is an intelligent grievance redressal platform that uses AI to automatically classify citizen complaints, prioritize them based on urgency, and route them to the appropriate government departments for swift resolution.
+- **Unstructured input**: Free-text complaints, informal language, mixed languages
+- **Manual review and routing**, leading to human dependency
+- **Slow resolution cycles**, causing large backlogs
+- **Lack of accountability and transparency** in grievance handling
+- **Limited data insights**, making it difficult to identify recurring or systemic issues
 
-### Key Features
+Due to the absence of intelligent prioritization and automation, **critical grievances are often delayed**, while low-impact issues consume administrative resources. This results in citizen dissatisfaction, inefficient governance, and reactive decision-making.
 
-- **🆕 Proof of Resolution**: Officers can upload multiple images as verifiable proof of fixed issues
-- **🆕 Handle Dashboard**: Detailed workspace for officers with SLA timers and citizen communication
-- **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
-- **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
-- **🆕 AI Auto-Assignment**: Load-balanced team assignment with SLA-aware reassignment
-- **🆕 AI Heatmap Analytics**: Issue density visualization by category and locality
-- **Smart Prioritization**: Urgency detection based on keywords and context
-- **Real-time Tracking**: Citizens can track their complaint status
-- **Department Dashboard**: Officers can manage and resolve assigned complaints
-- **Community Upvoting**: Public complaints can be upvoted to boost priority
-- **AI-Generated Insights**: Recurring issue detection using semantic clustering (Task #8)
-- **Admin Analytics**: Comprehensive statistics and department management
-
-## 🏗️ Architecture
-
-```
-├── AI-services/            # AI Microservices
-│   ├── classification/     # Hybrid DistilBERT Classifier
-│   └── similarity/         # SBERT Similarity Detection
-│
-├── backend/                 # FastAPI Python Backend
-│   ├── app/
-│   │   ├── services/       # AI Services (Auto-Assignment, Heatmap, Clustering)
-│   │   ├── models/         # SQLAlchemy Models (+ Teams, TaskAssignments)
-│   │   ├── routers/        # API Routes (+ Assignments, Analytics)
-│   │   ├── schemas/        # Pydantic Schemas
-│   │   └── main.py         # FastAPI Application
-│   └── seed_data.py        # Demo Data Seeder
-│
-├── frontend/               # Next.js React Frontend
-│   └── src/
-│       ├── app/           # App Router Pages
-│       ├── components/    # Shared Components
-│       └── lib/           # API Client & Auth
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.9+
-- Node.js 18+
-- npm
-- PostgreSQL 14+ (running locally or use a hosted service)
-
-### 1. Setup PostgreSQL Database
-
-```bash
-# Create database (using psql)
-psql -U postgres
-CREATE DATABASE samadhan_setu;
-\q
-```
-
-Or set the DATABASE_URL environment variable:
-```bash
-set DATABASE_URL=postgresql://user:password@localhost:5432/samadhan_setu
-```
-
-### 2. Clone & Setup Backend
-
-```bash
-cd backend
-
-# Create virtual environment (recommended)
-python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Seed demo data
-python seed_data.py
-
-# Start backend server
-uvicorn app.main:app --reload
-```
-
-Backend will run at: `http://localhost:8000`
-
-API Docs: `http://localhost:8000/docs`
-
-### 3. Setup Frontend
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-Frontend will run at: `http://localhost:3000`
-
-## 🔑 Demo Credentials
-
-| Role | Email | Password |
-|------|-------|----------|
-| 👤 Citizen | citizen@demo.com | demo123 |
-| 👮 Officer (Roads) | officer@roads.gov.in | demo123 |
-| 👮 Officer (Water) | officer@water.gov.in | demo123 |
-| 🔧 Admin | admin@samadhan.gov.in | demo123 |
-
-## 📱 User Flows
-
-### Citizen Flow
-1. Login/Register as citizen
-2. Lodge a grievance with description and location
-3. AI automatically detects category and priority
-4. Track complaint status in "My Status"
-5. View and upvote community complaints
-
-### Department Officer Flow
-1. Login as department officer
-2. View complaints sorted by priority
-3. Click "Handle" on a complaint to open the detailed workspace
-4. Upload proof images and add resolution remarks
-5. Mark as "Resolved" to notify the citizen
-
-### Admin Flow
-1. Login as admin
-2. View comprehensive statistics dashboard
-3. Monitor category breakdown and priority distribution
-4. Manage departments and SLA rules
-
-## 🧠 AI Services Modules
-
-We have implemented **two advanced AI services** to make the platform intelligent and efficient:
-
-### 1. Hybrid Classification Service
-*   **Goal**: Automatically tag complaints (e.g., "Wire sparking" → "Electricity").
-*   **Tech**: **DistilBERT (Zero-Shot)** + **Rule-Based Fallback**.
-*   **Logic**:
-    1.  Uses `distilbert-base-uncased-mnli` to understand context.
-    2.  If confidence < 60%, falls back to keyword rules (Safety Net).
-    3.  Ensures **High Accuracy** vs **High Reliability**.
-
-### 2. Similarity Detection Service
-*   **Goal**: Detect duplicate complaints in real-time to save officer time.
-*   **Tech**: **SBERT (`all-MiniLM-L6-v2`)** + **Cosine Similarity**.
-*   **Logic**:
-    1.  Converts complaint text into 384-dimensional vector embeddings.
-    2.  Compares with existing database embeddings.
-    3.  Flags matches with > 75% semantic similarity (e.g., "Water leaking" ≈ "Burst pipe").
-
-### 3. Urgency & Severity Detection Service
-*   **Goal**: Intelligently assess time-sensitivity (urgency) and impact (severity) of complaints.
-*   **Tech**: **DistilBERT (Zero-Shot)** with **Partial ML Acceptance**.
-*   **Logic**:
-    1.  Runs two independent zero-shot classifications for urgency and severity.
-    2.  Uses ML result if confidence is high (≥65% for urgency, ≥60% for severity).
-    3.  Falls back to rule-based scoring when ML is uncertain.
-
-### 4. AI Auto-Assignment Service 🆕
-*   **Goal**: Automatically assign complaints to optimal team based on workload.
-*   **Tech**: Load-Scoring Algorithm + SLA Awareness.
-*   **Logic**:
-    ```
-    Load Score = (active_tasks / capacity) + priority_weight + deadline_pressure
-    ```
-    1.  Calculates load score for each available team.
-    2.  Assigns to team with lowest score that covers the ward.
-    3.  Auto-reassigns if SLA breach risk detected.
-
-### 5. AI Heatmap Analytics Service 🆕
-*   **Goal**: Visualize issue density for proactive governance.
-*   **Tech**: Aggregation + Semantic Clustering.
-*   **Features**:
-    *   Category-wise heatmaps (which issues are most common)
-    *   Locality-wise heatmaps (which areas have most issues)
-    *   Recurring issue detection (identify systemic problems)
-    *   Time-trend analysis
-
-### 6. AI-Generated Insights Service (Task #8) 🆕
-*   **Goal**: Find hidden "clusters" of problems for proactive governance.
-*   **Tech**: **SBERT (`all-MiniLM-L6-v2`)** + **K-Means Clustering**.
-*   **Logic**:
-    1.  Groups complaints using a dynamic K-Means approach (`K = sqrt(N)`).
-    2.  Extracts top keywords and locations from each cluster.
-    3.  Generates descriptive summaries like "Recurring Pipe issues in Ward 5".
-    4.  Excludes "Isolated Issues" (noise) to highlight meaningful trends.
-
-### Why Hybrid ML + Rule-Based?
-> Public governance systems require reliability. ML predictions are used only when confidence is high. Otherwise, deterministic rules ensure safe, explainable decision-making.
-
-### 6. Priority Calculation Logic
-Samadhan Setu uses a **transparent, transparent scoring formula** (not a black box) to ensure fairness, accountability, and explainability in public governance.
-
-**The Formula:**
-`Priority Score = (0.4 × Urgency) + (0.4 × Severity) + (0.2 × Normalized Crowd Impact)`
-
-*   **Urgency & Severity**: Detected by AI Service #3 (Low=1, Medium=2, High=3).
-*   **Normalized Crowd Impact**: Calculated as `min(upvotes, 10) / 10`. This ensures that citizen feedback influences priority but never dominates risk assessment.
-*   **Governance Safety Rule**: A hard safety rule prevents any incident flagged as "Low" urgency AND "Low" severity from ever reaching "High" priority, regardless of the number of upvotes. This prevents "popularity gaming" of the system for minor issues.
-
-**Priority Levels & SLA Deadlines:**
-| Score Range | Priority Level | SLA Deadline |
-| :--- | :--- | :--- |
-| Score ≥ 2.5 | **High** | 24 Hours |
-| Score ≥ 1.7 | **Medium** | 72 Hours |
-| Score < 1.7 | **Low** | 7 Days (168 Hours) |
+There is a pressing need for an **AI-powered grievance redressal system** that can intelligently understand, categorize, prioritize, and analyze citizen complaints at scale—enabling **faster, fairer, and more transparent public governance**.
 
 ---
 
+### 🎯 Objective
 
-## 🛠️ Tech Stack
+The objective of **Samadhan Setu** is to design and develop an **AI-driven grievance redressal platform** using **Natural Language Processing (NLP)** and **intelligent automation** that empowers public institutions to manage grievances efficiently and transparently.
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 14, Tailwind CSS, Lucide Icons |
-| Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | PostgreSQL |
-| Auth | JWT with bcrypt hashing |
-| AI (Classification) | **DistilBERT** (Hugging Face Transformers) |
-| AI (Similarity) | **SBERT** (Sentence Transformers) |
+The platform aims to:
 
-## 🔮 Future Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Voice complaint submission
-- [x] DistilBERT classification model (Implemented)
-- [x] Semantic Similarity Detection (Implemented)
-- [ ] Government API integrations
-- [ ] Multi-city support
-- [ ] WhatsApp/SMS notifications
-
-## 📄 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login with credentials
-- `GET /api/auth/me` - Get current user profile
-
-### Citizens
-- `POST /api/complaints` - Submit new complaint
-- `GET /api/complaints/my` - Get user's complaints
-- `GET /api/complaints/public` - Community feed
-- `POST /api/complaints/{id}/upvote` - Upvote complaint
-
-### Department
-- `GET /api/department/complaints` - Get assigned complaints
-- `PUT /api/department/complaints/{id}/status` - Update status
-
-### Admin
-- `GET /api/admin/stats` - Dashboard statistics
-- `GET /api/admin/departments` - List departments
-- `POST /api/admin/mappings` - Create category mapping
-
-### Assignments 🆕
-- `GET /api/assignments/teams` - List all teams
-- `GET /api/assignments/team/{id}` - Get team's assignments
-- `POST /api/assignments/{id}/override` - Manual override
-- `POST /api/assignments/check-reassignments` - Trigger AI check
-
-### Analytics 🆕
-- `GET /api/analytics/heatmap/category` - Category heatmap
-- `GET /api/analytics/heatmap/locality` - Locality heatmap
-- `GET /api/analytics/clusters` - Similar complaint clusters
-- `GET /api/analytics/recurring-issues` - Recurring patterns
-- `GET /api/analytics/summary` - Dashboard summary
-
-## 👥 Team
-
-**Team Strawhats** - ByteQuest 2025
+- Automatically analyze and classify citizen complaints using AI
+- Intelligently prioritize grievances based on urgency, severity, and public impact
+- Route complaints to the appropriate department or authority with minimal manual intervention
+- Assist government bodies in monitoring resolution timelines and SLA compliance
+- Generate actionable insights from large volumes of grievance data to support proactive governance
 
 ---
 
+### 🧠 How Samadhan Setu Addresses PS-12
+
+Samadhan Setu directly aligns with the PS-12 requirements through the following capabilities:
+
+| Governance Challenge | Samadhan Setu Solution |
+|----------------------|------------------------|
+| Unstructured complaints | NLP-based AI understanding (DistilBERT + SBERT) |
+| Manual classification | Hybrid AI classification with rule-based fallback |
+| Poor prioritization | Transparent priority scoring (Urgency + Severity + Crowd Impact) |
+| Routing delays | AI-based auto-assignment with SLA awareness |
+| Lack of insights | Semantic clustering and AI-generated analytics |
+| Low transparency | Real-time status tracking and proof-of-resolution |
+
+The system ensures that **AI decisions remain explainable, auditable, and safe for public governance**, avoiding black-box behavior through a hybrid ML + deterministic rules approach.
+
+---
+
+### 🏆 Impact on Public Governance
+
+By implementing Samadhan Setu, public institutions can achieve:
+
+- ⏱️ Faster grievance resolution and reduced backlog
+- ⚖️ Fair, data-driven, and transparent prioritization
+- 📊 Actionable insights for policy and infrastructure planning
+- 📍 Early detection of recurring civic and systemic issues
+- 🤝 Improved citizen trust, engagement, and accountability
+
+Samadhan Setu transforms grievance redressal from a **reactive complaint-handling process** into a **proactive, AI-powered governance intelligence platform**.
+
+# Demo
+[Demo video & PPT](https://drive.google.com/drive/folders/15amJ3RHyh0-A6fI3VCVCXVB1-v-acGHQ)
