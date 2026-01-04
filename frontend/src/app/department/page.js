@@ -48,10 +48,18 @@ export default function DepartmentDashboard() {
 
     const handleStatusUpdate = async (id, newStatus, remarks = '') => {
         setUpdating(id);
+        // Map to correct enum values
+        const statusMap = {
+            'IN_PROGRESS': 'In Progress',
+            'RESOLVED': 'Resolved',
+            'REJECTED': 'Rejected',
+            'PENDING': 'Pending'
+        };
+        const mappedStatus = statusMap[newStatus] || newStatus;
         try {
             await departmentAPI.updateStatus(id, {
-                status: newStatus,
-                remarks: remarks || `Status updated to ${newStatus}`
+                status: mappedStatus,
+                remarks: remarks || `Status updated to ${mappedStatus}`
             });
             fetchData();
         } catch (err) {
@@ -209,6 +217,49 @@ export default function DepartmentDashboard() {
                                             <div className="text-xs text-theme-muted mt-1 flex items-center gap-1">
                                                 <MapPin size={12} /> {complaint.location}
                                             </div>
+                                            {/* Issue Images */}
+                                            {complaint.attachments && complaint.attachments.length > 0 && (
+                                                <div className="flex gap-1 mt-2 items-center">
+                                                    <span className="text-xs text-red-500 mr-1">📷</span>
+                                                    {complaint.attachments.slice(0, 2).map((img, idx) => {
+                                                        const imgUrl = typeof img === 'string'
+                                                            ? (img.startsWith('http') ? img : `http://127.0.0.1:8000${img}`)
+                                                            : (img.path ? `http://127.0.0.1:8000${img.path}` : '');
+                                                        return (
+                                                            <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
+                                                                <img src={imgUrl} alt={`Issue ${idx + 1}`} className="w-10 h-10 object-cover rounded border-2 border-red-300" />
+                                                            </a>
+                                                        );
+                                                    })}
+                                                    {complaint.attachments.length > 2 && (
+                                                        <span className="text-xs text-theme-muted">+{complaint.attachments.length - 2}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {/* Resolution Proof Images (for resolved) */}
+                                            {isResolved && complaint.resolution_proof && (() => {
+                                                const proofs = Array.isArray(complaint.resolution_proof)
+                                                    ? complaint.resolution_proof
+                                                    : (typeof complaint.resolution_proof === 'string' ? JSON.parse(complaint.resolution_proof || '[]') : []);
+                                                return proofs.length > 0 && (
+                                                    <div className="flex gap-1 mt-1 items-center">
+                                                        <span className="text-xs text-green-500 mr-1">✅</span>
+                                                        {proofs.slice(0, 2).map((img, idx) => {
+                                                            const imgUrl = typeof img === 'string'
+                                                                ? (img.startsWith('http') ? img : `http://127.0.0.1:8000${img}`)
+                                                                : (img.path ? `http://127.0.0.1:8000${img.path}` : '');
+                                                            return (
+                                                                <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer">
+                                                                    <img src={imgUrl} alt={`Proof ${idx + 1}`} className="w-10 h-10 object-cover rounded border-2 border-green-400" />
+                                                                </a>
+                                                            );
+                                                        })}
+                                                        {proofs.length > 2 && (
+                                                            <span className="text-xs text-theme-muted">+{proofs.length - 2}</span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="p-4">
                                             {complaint.deadline ? (

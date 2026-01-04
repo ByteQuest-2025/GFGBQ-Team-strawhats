@@ -27,6 +27,17 @@ export default function HandleComplaint() {
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
 
+    // Helper to get correct image URL
+    const getImageUrl = (img) => {
+        if (!img) return '';
+        if (typeof img === 'string') {
+            if (img.startsWith('http')) return img;
+            return `http://127.0.0.1:8000${img}`;
+        }
+        if (img.path) return `http://127.0.0.1:8000${img.path}`;
+        return '';
+    };
+
     const complaintId = params?.id;
 
     useEffect(() => {
@@ -89,7 +100,7 @@ export default function HandleComplaint() {
         try {
             // Update status to resolved
             await departmentAPI.updateStatus(complaintId, {
-                status: 'RESOLVED',
+                status: 'Resolved',
                 remarks: remarks
             });
 
@@ -107,7 +118,7 @@ export default function HandleComplaint() {
     const handleStatusUpdate = async (newStatus) => {
         try {
             await departmentAPI.updateStatus(complaintId, {
-                status: newStatus,
+                status: newStatus === 'IN_PROGRESS' ? 'In Progress' : newStatus,
                 remarks: `Status updated to ${newStatus}`
             });
             setStatus(newStatus);
@@ -247,6 +258,33 @@ export default function HandleComplaint() {
                                 </span>
                                 <Badge status={complaint.status} />
                             </div>
+
+                            {/* Citizen Submitted Images */}
+                            {complaint.attachments && complaint.attachments.length > 0 && (
+                                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-300 dark:border-blue-700">
+                                    <h4 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase mb-3 flex items-center gap-2">
+                                        📸 Citizen Submitted Evidence ({complaint.attachments.length} images)
+                                    </h4>
+                                    <div className="flex gap-3 flex-wrap">
+                                        {complaint.attachments.map((img, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={getImageUrl(img)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block"
+                                            >
+                                                <img
+                                                    src={getImageUrl(img)}
+                                                    alt={`Evidence ${idx + 1}`}
+                                                    className="w-32 h-32 object-cover rounded-lg border-2 border-blue-400 hover:border-blue-600 shadow-md transition hover:scale-105"
+                                                    onError={(e) => { e.target.src = 'https://via.placeholder.com/128?text=Image'; }}
+                                                />
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
 

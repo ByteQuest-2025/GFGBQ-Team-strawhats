@@ -40,10 +40,48 @@ export default function TrackGrievance() {
 
     const getProgressWidth = (status) => {
         const s = String(status || '').toLowerCase().replace(/_/g, ' ');
-        if (s === 'resolved' || s === 'closed') return 'w-full bg-[var(--success)]';
-        if (s === 'in progress' || s === 'assigned') return 'w-1/2 bg-[var(--warning)]';
-        if (s === 'rejected') return 'w-full bg-[var(--error)]';
-        return 'w-[10%] bg-[var(--primary)]'; // Pending
+        if (s === 'resolved' || s === 'closed') return 'w-full bg-green-500';
+        if (s === 'in progress' || s === 'assigned') return 'w-2/3 bg-yellow-500';
+        if (s === 'rejected') return 'w-full bg-red-500';
+        return 'w-1/4 bg-blue-500'; // Pending
+    };
+
+    // Helper to get correct image URL
+    const getImageUrl = (img) => {
+        if (!img) return '';
+        // Handle string paths
+        if (typeof img === 'string') {
+            // Try to parse as JSON if it looks like JSON
+            if (img.startsWith('{') || img.startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(img);
+                    return getImageUrl(parsed);
+                } catch (e) { }
+            }
+            if (img.startsWith('http')) return img;
+            return `http://127.0.0.1:8000${img}`;
+        }
+        // Handle object with path property (resolution_proof format)
+        if (img && typeof img === 'object') {
+            if (img.path) return `http://127.0.0.1:8000${img.path}`;
+            if (img.url) return img.url;
+        }
+        return '';
+    };
+
+    // Helper to parse resolution proof which might be stored as JSON string
+    const getResolutionProof = (proof) => {
+        if (!proof) return [];
+        if (Array.isArray(proof)) return proof;
+        if (typeof proof === 'string') {
+            try {
+                const parsed = JSON.parse(proof);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
     };
 
     if (authLoading || loading) {
@@ -83,9 +121,50 @@ export default function TrackGrievance() {
                                         </span>
                                     </div>
                                     <p className="text-theme-secondary mb-2">{complaint.description}</p>
-                                    <div className="text-sm text-theme-muted flex items-center gap-1">
-                                        <MapPin size={14} /> {complaint.location}
+                                    <div className="text-sm text-theme-muted flex items-center gap-1 flex-wrap">
+                                        <MapPin size={14} />
+                                        <span>{complaint.location}</span>
+                                        {complaint.latitude && complaint.longitude && (
+                                            <>
+                                                <span className="text-xs bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-lg ml-2 border border-gray-300 dark:border-gray-600 font-mono shadow-sm">
+                                                    📍 {complaint.latitude.toFixed(6)}, {complaint.longitude.toFixed(6)}
+                                                </span>
+                                                <a
+                                                    href={`https://www.google.com/maps?q=${complaint.latitude},${complaint.longitude}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs text-blue-600 hover:underline ml-1"
+                                                >
+                                                    Open in Maps ↗
+                                                </a>
+                                            </>
+                                        )}
                                     </div>
+
+                                    {/* Citizen Attachments */}
+                                    {complaint.attachments && complaint.attachments.length > 0 && (
+                                        <div className="mt-3">
+                                            <h4 className="text-xs font-semibold text-theme-muted uppercase mb-2">📸 Issue Images</h4>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {complaint.attachments.map((img, idx) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={getImageUrl(img)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="block"
+                                                    >
+                                                        <img
+                                                            src={getImageUrl(img)}
+                                                            alt={`Attachment ${idx + 1}`}
+                                                            className="w-16 h-16 object-cover rounded-lg border-2 border-blue-300 hover:border-blue-500 transition shadow-sm"
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex flex-col items-end gap-2 ml-4">
                                     <Badge status={complaint.status} />
@@ -124,6 +203,118 @@ export default function TrackGrievance() {
                                                 {log.remarks && <span>- {log.remarks}</span>}
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Resolution Details - Before/After Comparison */}
+                            {(complaint.status === 'Resolved' || complaint.status === 'RESOLVED' || complaint.status.toLowerCase() === 'resolved') && (
+                                <div className="mt-4 pt-4 border-t-2 border-green-300">
+                                    {/* Before/After Images Comparison */}
+                                    <div className="bg-gradient-to-r from-red-50 to-green-50 dark:from-red-900/20 dark:to-green-900/20 p-4 rounded-xl border border-theme mb-4">
+                                        <h4 className="text-sm font-bold text-theme uppercase mb-4 text-center">📊 Before & After Resolution</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Before - Issue Images */}
+                                            <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border-2 border-red-300">
+                                                <h5 className="text-xs font-bold text-red-700 dark:text-red-300 uppercase mb-2 flex items-center gap-1">
+                                                    ❌ Before (Issue Reported)
+                                                </h5>
+                                                {complaint.attachments && complaint.attachments.length > 0 ? (
+                                                    <div className="flex gap-2 flex-wrap">
+                                                        {complaint.attachments.map((img, idx) => (
+                                                            <a key={idx} href={getImageUrl(img)} target="_blank" rel="noopener noreferrer">
+                                                                <img
+                                                                    src={getImageUrl(img)}
+                                                                    alt={`Before ${idx + 1}`}
+                                                                    className="w-24 h-24 object-cover rounded-lg border-2 border-red-400 shadow-md"
+                                                                    onError={(e) => { e.target.src = 'https://via.placeholder.com/96?text=No+Image'; }}
+                                                                />
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xs text-red-500 italic">No issue images uploaded</p>
+                                                )}
+                                            </div>
+
+                                            {/* After - Resolution Proof */}
+                                            <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border-2 border-green-300">
+                                                <h5 className="text-xs font-bold text-green-700 dark:text-green-300 uppercase mb-2 flex items-center gap-1">
+                                                    ✅ After (Issue Resolved)
+                                                </h5>
+                                                {(() => {
+                                                    const proofImages = getResolutionProof(complaint.resolution_proof);
+                                                    return proofImages.length > 0 ? (
+                                                        <div className="flex gap-2 flex-wrap">
+                                                            {proofImages.map((img, idx) => (
+                                                                <a key={idx} href={getImageUrl(img)} target="_blank" rel="noopener noreferrer">
+                                                                    <img
+                                                                        src={getImageUrl(img)}
+                                                                        alt={`After ${idx + 1}`}
+                                                                        className="w-24 h-24 object-cover rounded-lg border-2 border-green-400 shadow-md"
+                                                                        onError={(e) => { e.target.src = 'https://via.placeholder.com/96?text=No+Image'; }}
+                                                                    />
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-xs text-green-500 italic">No resolution proof uploaded</p>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Resolution Remarks */}
+                                    {complaint.resolution_remarks && (
+                                        <div className="mb-4">
+                                            <h4 className="text-xs font-semibold text-theme-muted uppercase mb-2">Officer Remarks</h4>
+                                            <p className="text-sm text-theme-secondary bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                                                {complaint.resolution_remarks}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Rating Section */}
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">Rate This Resolution</h4>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">Was this issue resolved to your satisfaction?</p>
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await complaintsAPI.rateResolution(complaint.id, 'satisfied');
+                                                        fetchComplaints();
+                                                    } catch (err) {
+                                                        setError(err.message);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                                            >
+                                                👍 Satisfied
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await complaintsAPI.rateResolution(complaint.id, 'unsatisfied');
+                                                        fetchComplaints();
+                                                    } catch (err) {
+                                                        setError(err.message);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                                            >
+                                                👎 Not Satisfied
+                                            </button>
+                                        </div>
+                                        {(complaint.resolution_upvotes > 0 || complaint.resolution_downvotes > 0) && (
+                                            <div className="mt-3 text-xs text-theme-muted">
+                                                Ratings: 👍 {complaint.resolution_upvotes || 0} | 👎 {complaint.resolution_downvotes || 0}
+                                                {complaint.needs_reconsideration && (
+                                                    <span className="ml-2 text-red-600 font-semibold">⚠️ Marked for Reconsideration</span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

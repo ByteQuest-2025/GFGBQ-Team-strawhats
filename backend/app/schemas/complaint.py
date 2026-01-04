@@ -8,6 +8,8 @@ class ComplaintBase(BaseModel):
     location: str
     ward: Optional[str] = None
     is_public: Optional[bool] = True
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class ComplaintCreate(ComplaintBase):
     """Schema for creating a new complaint - category, priority are AI-assigned"""
@@ -59,6 +61,9 @@ class ComplaintResponse(ComplaintBase):
     attachments: Optional[List] = None
     resolution_proof: Optional[List] = None
     resolution_remarks: Optional[str] = None
+    resolution_upvotes: Optional[int] = 0
+    resolution_downvotes: Optional[int] = 0
+    needs_reconsideration: Optional[bool] = False
     created_at: datetime
     updated_at: datetime
     resolved_at: Optional[datetime] = None

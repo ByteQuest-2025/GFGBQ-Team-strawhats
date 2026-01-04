@@ -203,3 +203,69 @@ async def get_analytics_summary(
         "recurring_issues_count": len(recurring),
         "high_severity_areas": [r for r in recurring if r["severity"] == "high"][:5]
     }
+
+
+@router.get("/map-data")
+async def get_map_data(
+    department_id: Optional[int] = None,
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get complaint data with coordinates for map visualization.
+    - Officers: automatically filtered to their department
+    - Admin: can filter by department or see all
+    """
+    from datetime import datetime, timedelta
+    from ..models import Complaint, Department
+    
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    
+    query = db.query(Complaint).filter(
+        Complaint.created_at >= cutoff,
+        Complaint.latitude.isnot(None),
+        Complaint.longitude.isnot(None)
+    )
+    
+    # Filter by department
+    dept_name = None
+    if current_user.role == UserRole.OFFICER:
+        # Officers see only their department
+        query = query.filter(Complaint.department_id == current_user.department_id)
+        dept = db.query(Department).filter(Department.id == current_user.department_id).first()
+        dept_name = dept.name if dept else None
+    elif department_id:
+        # Admin filtering by specific department
+        query = query.filter(Complaint.department_id == department_id)
+        dept = db.query(Department).filter(Department.id == department_id).first()
+        dept_name = dept.name if dept else None
+    
+    complaints = query.order_by(Complaint.created_at.desc()).all()
+    
+    # Get all departments for the filter dropdown (admin only)
+    departments = []
+    if current_user.role == UserRole.ADMIN:
+        depts = db.query(Department).all()
+        departments = [{"id": d.id, "name": d.name} for d in depts]
+    
+    return {
+        "complaints": [
+            {
+                "id": c.id,
+                "lat": c.latitude,
+                "lng": c.longitude,
+                "category": c.category,
+                "priority": c.priority.value if c.priority else "Low",
+                "status": c.status.value if c.status else "Pending",
+                "description": c.description[:100] + "..." if len(c.description) > 100 else c.description,
+                "location": c.location,
+                "created_at": c.created_at.isoformat()
+            }
+            for c in complaints
+        ],
+        "department_filter": dept_name,
+        "departments": departments,
+        "total": len(complaints),
+        "period_days": days
+    }

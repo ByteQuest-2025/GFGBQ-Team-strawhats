@@ -12,6 +12,7 @@ export default function LodgeGrievance() {
 
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
+    const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
     const [ward, setWard] = useState('');
     const [isPublic, setIsPublic] = useState(true);
     const [images, setImages] = useState([]);
@@ -95,6 +96,7 @@ export default function LodgeGrievance() {
         try {
             // Try GPS first
             const coords = await tryGPS();
+            setCoordinates({ lat: coords.lat, lng: coords.lon });
             try {
                 // Reverse geocode the GPS coordinates
                 const response = await fetch(
@@ -107,10 +109,10 @@ export default function LodgeGrievance() {
                     const parts = [addr.road, addr.suburb, addr.city || addr.town, addr.state].filter(Boolean);
                     setLocation(parts.join(', ') || data.display_name);
                 } else {
-                    setLocation(`${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`);
+                    setLocation(`GPS: ${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}`);
                 }
             } catch {
-                setLocation(`${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`);
+                setLocation(`GPS: ${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}`);
             }
         } catch (gpsError) {
             // GPS failed, try IP-based location
@@ -162,12 +164,26 @@ export default function LodgeGrievance() {
         setError('');
 
         try {
-            await complaintsAPI.submit({
+            // Submit complaint and get the response with ID
+            const result = await complaintsAPI.submit({
                 description,
                 location,
+                latitude: coordinates.lat,
+                longitude: coordinates.lng,
                 ward,
                 is_public: isPublic,
             });
+
+            // Upload images if any
+            if (images.length > 0 && result.id) {
+                try {
+                    const files = images.map(img => img.file);
+                    await complaintsAPI.uploadImages(result.id, files);
+                } catch (uploadErr) {
+                    console.error('Image upload failed:', uploadErr);
+                    // Don't fail the whole submission if image upload fails
+                }
+            }
 
             setSuccess(true);
             setTimeout(() => {

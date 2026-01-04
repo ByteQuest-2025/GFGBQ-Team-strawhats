@@ -92,6 +92,25 @@ export const complaintsAPI = {
         body: JSON.stringify(data),
     }),
 
+    uploadImages: async (complaintId, files) => {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        files.forEach(file => formData.append('files', file));
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/complaints/${complaintId}/upload-images`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to upload images');
+        }
+        return response.json();
+    },
+
     getMy: (status) => {
         const params = status ? `?status_filter=${status}` : '';
         return apiRequest(`/api/complaints/my${params}`);
@@ -106,6 +125,10 @@ export const complaintsAPI = {
     getById: (id) => apiRequest(`/api/complaints/${id}`),
 
     upvote: (id) => apiRequest(`/api/complaints/${id}/upvote`, {
+        method: 'POST',
+    }),
+
+    rateResolution: (id, rating) => apiRequest(`/api/complaints/${id}/rate-resolution?rating=${rating}`, {
         method: 'POST',
     }),
 
@@ -163,6 +186,16 @@ export const adminAPI = {
         const params = role ? `?role=${role}` : '';
         return apiRequest(`/api/admin/users${params}`);
     },
+};
+
+// Analytics API
+export const analyticsAPI = {
+    getMapData: (departmentId, days = 30) => {
+        const params = new URLSearchParams({ days: days.toString() });
+        if (departmentId) params.append('department_id', departmentId);
+        return apiRequest(`/api/analytics/map-data?${params}`);
+    },
+    getSummary: (days = 30) => apiRequest(`/api/analytics/summary?days=${days}`),
 };
 
 export default apiRequest;

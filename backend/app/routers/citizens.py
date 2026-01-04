@@ -4,7 +4,10 @@ Handles complaint submission, tracking, and community features
 """
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+import os
+import uuid
+import shutil
+from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
@@ -19,6 +22,10 @@ from ..schemas import (
     ComplaintAIResponse
 )
 from ..ai import process_complaint, classify_complaint, calculate_priority
+
+# Create uploads directory for citizen images
+CITIZEN_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "citizen")
+os.makedirs(CITIZEN_UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/api/complaints", tags=["Citizens"])
 
@@ -57,6 +64,8 @@ async def submit_complaint(
         description=complaint_data.description,
         location=complaint_data.location,
         ward=complaint_data.ward,
+        latitude=complaint_data.latitude,
+        longitude=complaint_data.longitude,
         priority=priority_map.get(ai_result['priority'], ComplaintPriority.LOW),
         urgency_score=ai_result['urgency_score'],
         ai_confidence=ai_result['confidence'],
@@ -106,6 +115,72 @@ async def submit_complaint(
     
     return ComplaintResponse.model_validate(new_complaint)
 
+
+@router.post("/{complaint_id}/upload-images")
+async def upload_complaint_images(
+    complaint_id: int,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload images for a complaint (only by complaint owner)
+    Accepts up to 5 images, max 10MB each
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Only owner can upload
+    if complaint.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the complaint owner can upload images"
+        )
+    
+    # Validate file count
+    existing = complaint.attachments or []
+    if len(existing) + len(files) > 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Maximum 5 images allowed. Currently have {len(existing)}"
+        )
+    
+    uploaded_files = []
+    for file in files:
+        # Validate file type
+        if not file.content_type.startswith("image/"):
+            continue
+        
+        # Validate file size (10MB max)
+        content = await file.read()
+        if len(content) > 10 * 1024 * 1024:
+            continue
+        await file.seek(0)
+        
+        # Generate unique filename
+        ext = os.path.splitext(file.filename)[1] or ".jpg"
+        unique_name = f"{complaint_id}_{uuid.uuid4().hex[:8]}{ext}"
+        file_path = os.path.join(CITIZEN_UPLOAD_DIR, unique_name)
+        
+        # Save file
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        
+        uploaded_files.append(f"/uploads/citizen/{unique_name}")
+    
+    # Update complaint attachments
+    complaint.attachments = existing + uploaded_files
+    db.commit()
+    
+    return {
+        "message": f"Successfully uploaded {len(uploaded_files)} image(s)",
+        "attachments": complaint.attachments
+    }
 
 @router.get("/preview-ai", response_model=ComplaintAIResponse)
 async def preview_ai_classification(
@@ -256,3 +331,71 @@ async def upvote_complaint(
     db.commit()
     
     return {"message": "Upvoted successfully", "upvotes": complaint.upvotes}
+
+
+@router.post("/{complaint_id}/rate-resolution")
+async def rate_resolution(
+    complaint_id: int,
+    rating: str = Query(..., enum=["satisfied", "unsatisfied"], description="Resolution rating"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Rate a resolved complaint.
+    Only the complaint owner can rate. If unsatisfied votes exceed satisfied, 
+    the complaint is marked for reconsideration.
+    """
+    complaint = db.query(Complaint).filter(Complaint.id == complaint_id).first()
+    
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found"
+        )
+    
+    # Only complaint owner can rate
+    if complaint.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the complaint owner can rate the resolution"
+        )
+    
+    # Only resolved complaints can be rated
+    if complaint.status != ComplaintStatus.RESOLVED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only resolved complaints can be rated"
+        )
+    
+    # Update ratings
+    if rating == "satisfied":
+        complaint.resolution_upvotes = (complaint.resolution_upvotes or 0) + 1
+    else:
+        complaint.resolution_downvotes = (complaint.resolution_downvotes or 0) + 1
+    
+    # Check if needs reconsideration (downvotes > upvotes)
+    if (complaint.resolution_downvotes or 0) > (complaint.resolution_upvotes or 0):
+        complaint.needs_reconsideration = True
+        # Optionally reopen the complaint
+        complaint.status = ComplaintStatus.IN_PROGRESS
+        
+        # Add status log
+        status_log = ComplaintStatusLog(
+            complaint_id=complaint.id,
+            status=ComplaintStatus.IN_PROGRESS,
+            remarks="Reopened due to citizen dissatisfaction - needs reconsideration",
+            updated_by=None
+        )
+        db.add(status_log)
+    else:
+        complaint.needs_reconsideration = False
+    
+    db.commit()
+    
+    return {
+        "message": "Rating submitted successfully",
+        "resolution_upvotes": complaint.resolution_upvotes,
+        "resolution_downvotes": complaint.resolution_downvotes,
+        "needs_reconsideration": complaint.needs_reconsideration,
+        "status": complaint.status.value
+    }

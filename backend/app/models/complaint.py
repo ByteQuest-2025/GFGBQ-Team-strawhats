@@ -50,6 +50,11 @@ class Complaint(Base):
     resolution_proof = Column(JSON, nullable=True)  # Officer uploaded proof images
     resolution_remarks = Column(Text, nullable=True)  # Officer remarks when resolving
     
+    # Resolution rating by citizen
+    resolution_upvotes = Column(Integer, default=0)  # Citizen satisfied
+    resolution_downvotes = Column(Integer, default=0)  # Citizen not satisfied
+    needs_reconsideration = Column(Boolean, default=False)  # Auto-set if downvotes > upvotes
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

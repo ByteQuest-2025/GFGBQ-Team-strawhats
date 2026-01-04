@@ -96,19 +96,33 @@ export default function Navbar() {
                     )}
 
                     {user?.role === 'officer' && (
-                        <li>
-                            <Link href="/department" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
-                                Department Dashboard
-                            </Link>
-                        </li>
+                        <>
+                            <li>
+                                <Link href="/department" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
+                                    Department Dashboard
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/department/map" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
+                                    Issue Map
+                                </Link>
+                            </li>
+                        </>
                     )}
 
                     {user?.role === 'admin' && (
-                        <li>
-                            <Link href="/admin" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
-                                Admin Dashboard
-                            </Link>
-                        </li>
+                        <>
+                            <li>
+                                <Link href="/admin" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
+                                    Admin Dashboard
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/admin/map" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium border-b-4 border-transparent hover:border-[var(--accent)] transition-all block">
+                                    District Map
+                                </Link>
+                            </li>
+                        </>
                     )}
 
                     <div className="flex-grow"></div>
