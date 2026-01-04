@@ -169,3 +169,107 @@ def classify_complaint(text: str) -> dict:
         "confidence": float(rb_conf_int) / 100.0,
         "source": "Rule-Based"
     }
+
+
+# --- Urgency & Severity Detection Bridge ---
+
+from urgency_severity.service import detect_urgency_severity
+from urgency_severity.config import (
+    URGENCY_CONFIDENCE_THRESHOLD,
+    SEVERITY_CONFIDENCE_THRESHOLD,
+    USE_ML_URGENCY_SEVERITY
+)
+
+
+def get_urgency_severity(text: str, category: str = "General") -> dict:
+    """
+    Detect urgency and severity using Hybrid AI with Partial ML Acceptance.
+    
+    Strategy (Independent Evaluation):
+    1. If urgency_confidence >= 0.65 → use ML urgency
+       Else → use rule-based urgency
+    2. If severity_confidence >= 0.60 → use ML severity
+       Else → use rule-based severity (from category)
+    
+    This maximizes ML usage while ensuring reliability.
+    
+    Args:
+        text: The complaint description
+        category: The complaint category (used for severity fallback)
+        
+    Returns:
+        Dict with:
+        - urgency: "Low" | "Medium" | "High"
+        - severity: "Low" | "Medium" | "High"
+        - urgency_source: "ML" | "Rule-Based"
+        - severity_source: "ML" | "Rule-Based"
+        
+    Example:
+        >>> result = get_urgency_severity("Fire near hospital", "Health & Safety")
+        >>> print(result)
+        {'urgency': 'High', 'severity': 'High', 'urgency_source': 'ML', 'severity_source': 'ML'}
+    """
+    # Lazy imports to avoid overhead and circular deps
+    from app.ai.priority import priority_calculator
+    
+    # Category severity mapping (from priority.py)
+    CATEGORY_SEVERITY_MAP = {
+        'Health & Safety': 'High',
+        'Electricity': 'High',
+        'Water Supply': 'Medium',
+        'Roads & Transport': 'Medium',
+        'Sanitation & Waste': 'Low',
+        'General': 'Low'
+    }
+    
+    final_urgency = "Medium"
+    final_severity = "Medium"
+    urgency_source = "Rule-Based"
+    severity_source = "Rule-Based"
+    
+    # 1. Attempt ML Detection
+    if USE_ML_URGENCY_SEVERITY:
+        try:
+            ml_result = detect_urgency_severity(text)
+            
+            # Urgency: Partial ML Acceptance
+            ml_urgency = ml_result["urgency"]
+            if ml_urgency["confidence"] >= URGENCY_CONFIDENCE_THRESHOLD:
+                final_urgency = ml_urgency["level"]
+                urgency_source = "ML"
+            else:
+                print(f"Urgency ML Low Confidence ({ml_urgency['confidence']:.2f} < {URGENCY_CONFIDENCE_THRESHOLD}). Falling back.")
+            
+            # Severity: Partial ML Acceptance
+            ml_severity = ml_result["severity"]
+            if ml_severity["confidence"] >= SEVERITY_CONFIDENCE_THRESHOLD:
+                final_severity = ml_severity["level"]
+                severity_source = "ML"
+            else:
+                print(f"Severity ML Low Confidence ({ml_severity['confidence']:.2f} < {SEVERITY_CONFIDENCE_THRESHOLD}). Falling back.")
+                
+        except Exception as e:
+            print(f"Urgency/Severity ML Error: {e}. Falling back to rules.")
+    
+    # 2. Apply Rule-Based Fallback (only for non-ML decided fields)
+    if urgency_source == "Rule-Based":
+        # Use rule-based urgency score
+        urgency_score = priority_calculator.calculate_urgency_score(text)
+        if urgency_score >= 6:
+            final_urgency = "High"
+        elif urgency_score >= 3:
+            final_urgency = "Medium"
+        else:
+            final_urgency = "Low"
+    
+    if severity_source == "Rule-Based":
+        # Use category-based severity mapping
+        final_severity = CATEGORY_SEVERITY_MAP.get(category, "Medium")
+    
+    return {
+        "urgency": final_urgency,
+        "severity": final_severity,
+        "urgency_source": urgency_source,
+        "severity_source": severity_source
+    }
+

@@ -1,98 +1,64 @@
 # Backend Integration Guide: AI Services
 
-This guide explains how to hook up **both** AI services to your FastAPI routers.
+This guide explains how to hook up **all three** AI-powered features.
 
-✅ **Key Concept**: You never import `AI-services` directly. Always go through `app.services.ai_bridge`.
+**Key Concept**: Always import from `app.services.ai_bridge`, never directly from `AI-services`.
 
 ---
 
 ## 1. Import the Bridge
 
-In your router file (e.g., `backend/app/routers/complaints.py`):
-
 ```python
 from app.services.ai_bridge import (
-    get_similar_complaints, 
-    get_duplicate_complaint,
-    classify_complaint
+    get_similar_complaints,
+    classify_complaint,
+    get_urgency_severity  # NEW: Bridge to AI Service 3
 )
+from app.ai.priority import calculate_hybrid_priority # NEW: Formula Logic
 ```
 
 ---
 
-## 2. Feature 1: Similarity Detection (Check for Duplicates)
+## 2. Feature 1 & 2
+... (stays same) ...
 
-Use this when the user is typing or submitting a complaint to stop duplicates.
+---
+
+## 3. Feature 3: Transparent Priority Scoring
+
+The logic is split into two steps:
+1.  **AI Detection**: Gets categorical levels (Urgency/Severity).
+2.  **Weighted Formula**: Calculates score and SLA.
+
+### Workflow Example
 
 ```python
-@router.post("/check-similarity")
-def check_similarity(text: str, db: Session = Depends(get_db)):
-    # 1. Fetch complaints for context
-    existing = [
-        {"id": c.id, "text": c.description} 
-        for c in db.query(Complaint).limit(100).all()
-    ]
+@router.post("/complaints")
+def create_complaint(complaint: ComplaintCreate):
+    # Step 1: Detect Levels using AI
+    # returns {"urgency": "High", "severity": "Medium", ...}
+    ai_levels = get_urgency_severity(complaint.description)
     
-    # 2. Call Bridge
-    return get_similar_complaints(text, existing)
+    # Step 2: Calculate Priority & SLA using transparent formula
+    # returns {"score": 2.7, "priority": "High", "sla_hours": 24, ...}
+    priority_data = calculate_hybrid_priority(
+        ai_levels["urgency"], 
+        ai_levels["severity"], 
+        complaint.upvotes
+    )
+    
+    # Final Output
+    return {
+        **ai_levels,
+        **priority_data
+    }
 ```
 
 ---
 
-## 3. Feature 2: Auto-Classification
+## Logic Summary
+- **Weights**: 40% Urgency | 40% Severity | 20% Crowd.
+- **Guardrail**: "Low/Low" cases are capped and cannot become "High" priority.
+- **SLA**: 24h (High) | 72h (Medium) | 7 Days (Low).
 
-Use this to auto-fill the "Category" field.
 
-### Usage in Router
-
-```python
-class ClassificationRequest(BaseModel):
-    text: str
-
-@router.post("/classify")
-def classify_complaint_endpoint(request: ClassificationRequest):
-    """
-    Predicts the category of a complaint.
-    Returns: { "category": "Water", "confidence": 0.98, "source": "ML" }
-    """
-    # 1. Call Bridge (Handles ML -> Rule Fallback internally)
-    result = classify_complaint(request.text)
-    
-    return result
-```
-
-### How the Bridge Works (Internally)
-You don't need to write this logic, it's already in `ai_bridge.py`:
-1.  It calls the **ML Model** (DistilBERT).
-2.  If confidence < 0.60, it falls back to the **Rule-Based Classifier**.
-3.  It returns the final safe category.
-
----
-
-## 4. Full Complaint Creation Workflow
-
-Here is how you might combine them in the `POST /complaints` endpoint:
-
-```python
-@router.post("/")
-def create_complaint(complaint: ComplaintCreate, db: Session = Depends(get_db)):
-    
-    # Step A: Check for Exact Duplicate (Safety Net)
-    existing_list = ... # fetch recent
-    duplicate = get_duplicate_complaint(complaint.description, existing_list)
-    if duplicate:
-         raise HTTPException(400, "Duplicate complaint detected")
-
-    # Step B: Auto-classify if category is missing/general
-    if not complaint.category or complaint.category == "General":
-        # Trust the AI Service
-        ai_result = classify_complaint(complaint.description)
-        complaint.category = ai_result["category"]
-
-    # Step C: Save
-    new_complaint = Complaint(**complaint.dict())
-    db.add(new_complaint)
-    db.commit()
-    
-    return new_complaint
-```
