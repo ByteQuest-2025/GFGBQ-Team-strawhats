@@ -42,7 +42,7 @@ export default function LodgeGrievance() {
                     const result = await complaintsAPI.previewAI(description);
                     setAiCategory(result.category || 'General');
                     setAiPriority(result.priority || 'Low');
-                    setAiConfidence(Math.round(result.confidence * 100) || 0);
+                    setAiConfidence(Math.round(result.confidence) || 0);
                 } catch (err) {
                     console.log('AI preview failed:', err);
                     // Show fallback values
@@ -190,79 +190,79 @@ export default function LodgeGrievance() {
     if (authLoading) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
-                <Loader2 className="animate-spin text-blue-600" size={32} />
+                <Loader2 className="animate-spin text-[var(--primary)]" size={32} />
             </div>
         );
     }
 
     if (success) {
         return (
-            <div className="max-w-3xl mx-auto my-8 p-8 bg-white rounded-lg shadow-md text-center">
-                <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Grievance Submitted Successfully!</h2>
-                <p className="text-gray-600">Your complaint has been classified and routed to the appropriate department.</p>
-                <p className="text-gray-500 mt-2">Redirecting to your complaints...</p>
+            <div className="max-w-3xl mx-auto my-8 p-8 card-theme rounded-lg text-center">
+                <CheckCircle size={64} className="mx-auto text-[var(--success)] mb-4" />
+                <h2 className="text-2xl font-bold text-theme mb-2">Grievance Submitted Successfully!</h2>
+                <p className="text-theme-secondary">Your complaint has been classified and routed to the appropriate department.</p>
+                <p className="text-theme-muted mt-2">Redirecting to your complaints...</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-3xl mx-auto my-8 p-6 bg-white rounded-lg shadow-md border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <FileText className="text-orange-500" /> Lodge a New Grievance
+        <div className="max-w-3xl mx-auto my-8 p-6 card-theme rounded-lg">
+            <h2 className="text-2xl font-bold text-theme mb-6 flex items-center gap-2">
+                <FileText className="text-[var(--accent)]" /> Lodge a New Grievance
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Description */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Describe the Issue <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-theme-secondary mb-1">
+                        Describe the Issue <span className="text-[var(--error)]">*</span>
                     </label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full p-3 input-theme rounded-lg focus:ring-2 focus:ring-[var(--input-focus)] outline-none transition"
                         rows="4"
                         placeholder="E.g., Large pothole at Main Street causing traffic jams. Multiple vehicles have been damaged..."
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-theme-muted mt-1">
                         Our AI will automatically detect the category and priority based on your description.
                     </p>
                 </div>
 
                 {/* AI Detection Display */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <Activity className="text-blue-600" size={16} />
-                        AI Classification {aiLoading && <Loader2 className="animate-spin text-blue-500" size={14} />}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-theme">
+                    <h3 className="text-sm font-semibold text-theme-secondary mb-3 flex items-center gap-2">
+                        <Activity className="text-[var(--primary)]" size={16} />
+                        AI Classification {aiLoading && <Loader2 className="animate-spin text-[var(--primary)]" size={14} />}
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Detected Category</label>
-                            <div className="w-full p-3 bg-white border border-gray-200 rounded-lg font-semibold text-gray-700 flex items-center justify-between shadow-sm">
+                            <label className="block text-xs font-medium text-theme-muted mb-1">Detected Category</label>
+                            <div className="w-full p-3 bg-theme-card border border-theme rounded-lg font-semibold text-theme flex items-center justify-between shadow-sm">
                                 {aiLoading ? (
-                                    <span className="text-gray-400">Analyzing...</span>
+                                    <span className="text-theme-muted">Analyzing...</span>
                                 ) : aiCategory ? (
                                     <>
-                                        <span className="text-blue-700">{aiCategory}</span>
-                                        <CheckCircle size={16} className="text-green-500" />
+                                        <span className="text-[var(--primary)]">{aiCategory}</span>
+                                        <CheckCircle size={16} className="text-[var(--success)]" />
                                     </>
                                 ) : (
-                                    <span className="text-gray-400">Start typing to detect...</span>
+                                    <span className="text-theme-muted">Start typing to detect...</span>
                                 )}
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Priority Assessment</label>
-                            <div className="w-full p-3 bg-white border border-gray-200 rounded-lg font-semibold flex items-center justify-between shadow-sm">
-                                <span className={`${aiPriority === 'High' ? 'text-red-600' :
-                                    aiPriority === 'Medium' ? 'text-orange-600' : 'text-blue-600'
+                            <label className="block text-xs font-medium text-theme-muted mb-1">Priority Assessment</label>
+                            <div className="w-full p-3 bg-theme-card border border-theme rounded-lg font-semibold flex items-center justify-between shadow-sm">
+                                <span className={`${aiPriority === 'High' ? 'text-[var(--error)]' :
+                                    aiPriority === 'Medium' ? 'text-[var(--accent)]' : 'text-[var(--primary)]'
                                     }`}>
                                     {aiLoading ? 'Calculating...' : `${aiPriority} Priority`}
                                 </span>
                                 {aiConfidence > 0 && (
-                                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                    <span className="text-xs text-theme-muted bg-theme-tertiary px-2 py-1 rounded">
                                         {aiConfidence}% confident
                                     </span>
                                 )}
@@ -273,10 +273,10 @@ export default function LodgeGrievance() {
 
                 {/* Image Upload */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-theme-secondary mb-1">
                         Attach Photos (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition">
+                    <div className="border-2 border-dashed border-theme rounded-lg p-4 hover:border-[var(--primary)] transition">
                         <input
                             type="file"
                             accept="image/*"
@@ -286,8 +286,8 @@ export default function LodgeGrievance() {
                             id="image-upload"
                         />
                         <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center">
-                            <ImagePlus className="text-gray-400 mb-2" size={32} />
-                            <span className="text-sm text-gray-500">Click to upload images (max 3)</span>
+                            <ImagePlus className="text-theme-muted mb-2" size={32} />
+                            <span className="text-sm text-theme-muted">Click to upload images (max 3)</span>
                         </label>
                     </div>
 
@@ -295,11 +295,11 @@ export default function LodgeGrievance() {
                         <div className="flex gap-2 mt-3 flex-wrap">
                             {images.map((img, idx) => (
                                 <div key={idx} className="relative">
-                                    <img src={img.url} alt={`Upload ${idx + 1}`} className="w-20 h-20 object-cover rounded-lg border" />
+                                    <img src={img.url} alt={`Upload ${idx + 1}`} className="w-20 h-20 object-cover rounded-lg border border-theme" />
                                     <button
                                         type="button"
                                         onClick={() => removeImage(idx)}
-                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                                        className="absolute -top-2 -right-2 bg-[var(--error)] text-white rounded-full p-1"
                                     >
                                         <X size={12} />
                                     </button>
@@ -311,23 +311,23 @@ export default function LodgeGrievance() {
 
                 {/* Location with Auto-detect */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Location <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-theme-secondary mb-1">
+                        Location <span className="text-[var(--error)]">*</span>
                     </label>
                     <div className="relative">
-                        <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <MapPin className="absolute left-3 top-3 text-theme-muted" size={18} />
                         <input
                             type="text"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            className="w-full pl-10 pr-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full pl-10 pr-32 p-3 input-theme rounded-lg focus:ring-2 focus:ring-[var(--input-focus)] outline-none"
                             placeholder="Enter exact location or use auto-detect"
                         />
                         <button
                             type="button"
                             onClick={getAutoLocation}
                             disabled={locationLoading}
-                            className="absolute right-2 top-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 transition disabled:opacity-50"
+                            className="absolute right-2 top-2 bg-[var(--primary-light)] hover:bg-[var(--primary)] hover:text-white text-[var(--primary)] px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 transition disabled:opacity-50"
                         >
                             {locationLoading ? (
                                 <Loader2 className="animate-spin" size={14} />
@@ -341,32 +341,32 @@ export default function LodgeGrievance() {
 
                 {/* Ward */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ward / Zone (Optional)</label>
+                    <label className="block text-sm font-medium text-theme-secondary mb-1">Ward / Zone (Optional)</label>
                     <input
                         type="text"
                         value={ward}
                         onChange={(e) => setWard(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full p-3 input-theme rounded-lg focus:ring-2 focus:ring-[var(--input-focus)] outline-none"
                         placeholder="E.g., Ward 12, Zone A"
                     />
                 </div>
 
                 {/* Public Toggle */}
-                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
+                <div className="flex items-center gap-3 bg-theme-tertiary p-3 rounded-lg">
                     <input
                         type="checkbox"
                         id="isPublic"
                         checked={isPublic}
                         onChange={(e) => setIsPublic(e.target.checked)}
-                        className="w-5 h-5 text-blue-600 rounded"
+                        className="w-5 h-5 text-[var(--primary)] rounded"
                     />
-                    <label htmlFor="isPublic" className="text-sm text-gray-700">
+                    <label htmlFor="isPublic" className="text-sm text-theme-secondary">
                         Make this complaint visible in community feed (others can upvote to boost priority)
                     </label>
                 </div>
 
                 {error && (
-                    <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg flex items-center gap-2">
+                    <div className="text-[var(--error)] text-sm bg-[var(--error-bg)] p-3 rounded-lg flex items-center gap-2">
                         <AlertCircle size={16} />
                         {error}
                     </div>
@@ -375,7 +375,7 @@ export default function LodgeGrievance() {
                 <button
                     type="submit"
                     disabled={!description || !location || loading}
-                    className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-gray-400 text-white font-bold py-3.5 rounded-lg shadow-lg transition flex items-center justify-center gap-2"
+                    className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3.5 rounded-lg shadow-lg transition flex items-center justify-center gap-2"
                 >
                     {loading ? (
                         <>
@@ -393,4 +393,3 @@ export default function LodgeGrievance() {
         </div>
     );
 }
-

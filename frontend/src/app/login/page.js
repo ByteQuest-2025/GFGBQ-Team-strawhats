@@ -48,10 +48,13 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-[80vh] bg-gray-100 flex items-center justify-center py-12 px-4">
-            <div className="max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div className="min-h-[80vh] bg-theme flex items-center justify-center py-12 px-4">
+            <div className="max-w-4xl w-full card-theme-elevated rounded-xl overflow-hidden flex flex-col md:flex-row">
                 {/* Left Side - Info */}
-                <div className="md:w-1/2 bg-blue-900 p-8 text-white flex flex-col justify-center">
+                <div
+                    className="md:w-1/2 p-8 text-white flex flex-col justify-center"
+                    style={{ background: 'var(--gradient-hero)' }}
+                >
                     <h3 className="text-2xl font-bold mb-4">Welcome to Samadhan Setu</h3>
                     <p className="mb-6 opacity-90">Please login to continue using the grievance redressal services.</p>
                     <ul className="space-y-3 text-sm opacity-80">
@@ -63,8 +66,8 @@ export default function LoginPage() {
                 </div>
 
                 {/* Right Side - Forms */}
-                <div className="md:w-1/2 p-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6">
+                <div className="md:w-1/2 p-8 bg-theme-card">
+                    <h3 className="text-xl font-bold text-theme mb-6">
                         {mode === 'login' ? 'Login to Your Account' : 'Create New Account'}
                     </h3>
 
@@ -72,12 +75,12 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {mode === 'register' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-medium text-theme-secondary mb-1">Full Name</label>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full p-2 input-theme rounded focus:ring-2 focus:ring-[var(--input-focus)] outline-none"
                                     placeholder="Enter your name"
                                     required
                                 />
@@ -85,54 +88,54 @@ export default function LoginPage() {
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <label className="block text-sm font-medium text-theme-secondary mb-1">Email</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full p-2 input-theme rounded focus:ring-2 focus:ring-[var(--input-focus)] outline-none"
                                 placeholder="Enter your email"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <label className="block text-sm font-medium text-theme-secondary mb-1">Password</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full p-2 input-theme rounded focus:ring-2 focus:ring-[var(--input-focus)] outline-none"
                                 placeholder="Enter your password"
                                 required
                             />
                         </div>
 
                         {error && (
-                            <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</div>
+                            <div className="text-[var(--error)] text-sm bg-[var(--error-bg)] p-2 rounded">{error}</div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-gray-400 text-white font-bold py-2 rounded transition"
+                            className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed font-bold py-2 rounded transition"
                         >
                             {loading ? 'Please wait...' : (mode === 'login' ? 'Login' : 'Register')}
                         </button>
                     </form>
 
-                    <div className="mt-4 text-center text-sm text-gray-600">
+                    <div className="mt-4 text-center text-sm text-theme-secondary">
                         {mode === 'login' ? (
                             <>
                                 Don&apos;t have an account?{' '}
-                                <button onClick={() => setMode('register')} className="text-blue-600 font-semibold">
+                                <button onClick={() => setMode('register')} className="text-[var(--primary)] font-semibold hover:underline">
                                     Register
                                 </button>
                             </>
                         ) : (
                             <>
                                 Already have an account?{' '}
-                                <button onClick={() => setMode('login')} className="text-blue-600 font-semibold">
+                                <button onClick={() => setMode('login')} className="text-[var(--primary)] font-semibold hover:underline">
                                     Login
                                 </button>
                             </>
@@ -143,4 +146,3 @@ export default function LoginPage() {
         </div>
     );
 }
-

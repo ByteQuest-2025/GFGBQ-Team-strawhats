@@ -70,6 +70,30 @@ async def submit_complaint(
     db.commit()
     db.refresh(new_complaint)
     
+    # Calculate SLA deadline based on priority
+    from datetime import timedelta
+    from ..models.sla import SLARule
+    
+    # Lookup SLA rule (priority-specific first, then fallback to default)
+    sla_rule = db.query(SLARule).filter(
+        (SLARule.priority == new_complaint.priority) | (SLARule.priority == None)
+    ).order_by(SLARule.priority.desc().nullslast()).first()
+    
+    # Default resolution hours based on priority if no SLA rule found
+    default_hours = {'High': 24, 'Medium': 48, 'Low': 72}
+    resolution_hours = sla_rule.resolution_hours if sla_rule else default_hours.get(new_complaint.priority.value, 72)
+    
+    new_complaint.deadline = new_complaint.created_at + timedelta(hours=resolution_hours)
+    db.commit()
+    db.refresh(new_complaint)
+    
+    # AI Team Assignment (Feature 1)
+    from ..services.assignment_optimizer import assign_complaint
+    assignment_result = assign_complaint(db, new_complaint)
+    # Log assignment result (non-blocking, doesn't fail submission)
+    if assignment_result.get("success"):
+        print(f"AI Assignment: Complaint #{new_complaint.id} -> Team {assignment_result.get('team_name')}")
+    
     # Create initial status log
     status_log = ComplaintStatusLog(
         complaint_id=new_complaint.id,

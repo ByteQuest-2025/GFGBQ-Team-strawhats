@@ -13,10 +13,13 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 
 ### Key Features
 
+- **🆕 Proof of Resolution**: Officers can upload multiple images as verifiable proof of fixed issues
+- **🆕 Handle Dashboard**: Detailed workspace for officers with SLA timers and citizen communication
 - **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
 - **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
+- **🆕 AI Auto-Assignment**: Load-balanced team assignment with SLA-aware reassignment
+- **🆕 AI Heatmap Analytics**: Issue density visualization by category and locality
 - **Smart Prioritization**: Urgency detection based on keywords and context
-- **Duplicate Detection**: Semantic search prevents redundant grievance submissions
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
 - **Community Upvoting**: Public complaints can be upvoted to boost priority
@@ -31,9 +34,9 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 │
 ├── backend/                 # FastAPI Python Backend
 │   ├── app/
-│   │   ├── services/       # AI Bridge Adapter
-│   │   ├── models/         # SQLAlchemy Database Models
-│   │   ├── routers/        # API Route Handlers
+│   │   ├── services/       # AI Services (Auto-Assignment, Heatmap, Clustering)
+│   │   ├── models/         # SQLAlchemy Models (+ Teams, TaskAssignments)
+│   │   ├── routers/        # API Routes (+ Assignments, Analytics)
 │   │   ├── schemas/        # Pydantic Schemas
 │   │   └── main.py         # FastAPI Application
 │   └── seed_data.py        # Demo Data Seeder
@@ -127,8 +130,9 @@ Frontend will run at: `http://localhost:3000`
 ### Department Officer Flow
 1. Login as department officer
 2. View complaints sorted by priority
-3. Update status (Pending → In Progress → Resolved)
-4. Add remarks for transparency
+3. Click "Handle" on a complaint to open the detailed workspace
+4. Upload proof images and add resolution remarks
+5. Mark as "Resolved" to notify the citizen
 
 ### Admin Flow
 1. Login as admin
@@ -164,10 +168,30 @@ We have implemented **two advanced AI services** to make the platform intelligen
     2.  Uses ML result if confidence is high (≥65% for urgency, ≥60% for severity).
     3.  Falls back to rule-based scoring when ML is uncertain.
 
+### 4. AI Auto-Assignment Service 🆕
+*   **Goal**: Automatically assign complaints to optimal team based on workload.
+*   **Tech**: Load-Scoring Algorithm + SLA Awareness.
+*   **Logic**:
+    ```
+    Load Score = (active_tasks / capacity) + priority_weight + deadline_pressure
+    ```
+    1.  Calculates load score for each available team.
+    2.  Assigns to team with lowest score that covers the ward.
+    3.  Auto-reassigns if SLA breach risk detected.
+
+### 5. AI Heatmap Analytics Service 🆕
+*   **Goal**: Visualize issue density for proactive governance.
+*   **Tech**: Aggregation + Semantic Clustering.
+*   **Features**:
+    *   Category-wise heatmaps (which issues are most common)
+    *   Locality-wise heatmaps (which areas have most issues)
+    *   Recurring issue detection (identify systemic problems)
+    *   Time-trend analysis
+
 ### Why Hybrid ML + Rule-Based?
 > Public governance systems require reliability. ML predictions are used only when confidence is high. Otherwise, deterministic rules ensure safe, explainable decision-making.
 
-### 4. Priority Calculation Logic
+### 6. Priority Calculation Logic
 Samadhan Setu uses a **transparent, transparent scoring formula** (not a black box) to ensure fairness, accountability, and explainability in public governance.
 
 **The Formula:**
@@ -229,6 +253,19 @@ Samadhan Setu uses a **transparent, transparent scoring formula** (not a black b
 - `GET /api/admin/stats` - Dashboard statistics
 - `GET /api/admin/departments` - List departments
 - `POST /api/admin/mappings` - Create category mapping
+
+### Assignments 🆕
+- `GET /api/assignments/teams` - List all teams
+- `GET /api/assignments/team/{id}` - Get team's assignments
+- `POST /api/assignments/{id}/override` - Manual override
+- `POST /api/assignments/check-reassignments` - Trigger AI check
+
+### Analytics 🆕
+- `GET /api/analytics/heatmap/category` - Category heatmap
+- `GET /api/analytics/heatmap/locality` - Locality heatmap
+- `GET /api/analytics/clusters` - Similar complaint clusters
+- `GET /api/analytics/recurring-issues` - Recurring patterns
+- `GET /api/analytics/summary` - Dashboard summary
 
 ## 👥 Team
 

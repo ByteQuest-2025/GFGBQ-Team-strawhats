@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum as SQLEnum, Boolean, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum as SQLEnum, Boolean, JSON, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -35,6 +35,11 @@ class Complaint(Base):
     status = Column(SQLEnum(ComplaintStatus), default=ComplaintStatus.PENDING)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     assigned_officer_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # AI-assigned team
+    
+    # Location coordinates (for heatmap and geographic routing)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     
     # Community features
     upvotes = Column(Integer, default=0)
@@ -49,6 +54,7 @@ class Complaint(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
+    deadline = Column(DateTime, nullable=True)  # SLA deadline based on priority
     
     # Relationships
     user = relationship("User", back_populates="complaints", foreign_keys=[user_id])
