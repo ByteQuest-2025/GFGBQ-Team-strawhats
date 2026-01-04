@@ -155,6 +155,36 @@ We have implemented **two advanced AI services** to make the platform intelligen
     2.  Compares with existing database embeddings.
     3.  Flags matches with > 75% semantic similarity (e.g., "Water leaking" ≈ "Burst pipe").
 
+### 3. Urgency & Severity Detection Service
+*   **Goal**: Intelligently assess time-sensitivity (urgency) and impact (severity) of complaints.
+*   **Tech**: **DistilBERT (Zero-Shot)** with **Partial ML Acceptance**.
+*   **Logic**:
+    1.  Runs two independent zero-shot classifications for urgency and severity.
+    2.  Uses ML result if confidence is high (≥65% for urgency, ≥60% for severity).
+    3.  Falls back to rule-based scoring when ML is uncertain.
+
+### Why Hybrid ML + Rule-Based?
+> Public governance systems require reliability. ML predictions are used only when confidence is high. Otherwise, deterministic rules ensure safe, explainable decision-making.
+
+### 4. Priority Calculation Logic
+Samadhan Setu uses a **transparent, transparent scoring formula** (not a black box) to ensure fairness, accountability, and explainability in public governance.
+
+**The Formula:**
+`Priority Score = (0.4 × Urgency) + (0.4 × Severity) + (0.2 × Normalized Crowd Impact)`
+
+*   **Urgency & Severity**: Detected by AI Service #3 (Low=1, Medium=2, High=3).
+*   **Normalized Crowd Impact**: Calculated as `min(upvotes, 10) / 10`. This ensures that citizen feedback influences priority but never dominates risk assessment.
+*   **Governance Safety Rule**: A hard safety rule prevents any incident flagged as "Low" urgency AND "Low" severity from ever reaching "High" priority, regardless of the number of upvotes. This prevents "popularity gaming" of the system for minor issues.
+
+**Priority Levels & SLA Deadlines:**
+| Score Range | Priority Level | SLA Deadline |
+| :--- | :--- | :--- |
+| Score ≥ 2.5 | **High** | 24 Hours |
+| Score ≥ 1.7 | **Medium** | 72 Hours |
+| Score < 1.7 | **Low** | 7 Days (168 Hours) |
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
