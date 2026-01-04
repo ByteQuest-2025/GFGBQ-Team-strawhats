@@ -2,6 +2,8 @@ from typing import List, Dict, Optional
 from collections import namedtuple
 # from ...ai_services.insights.service import get_insights # Broken import
 from .complaint_clustering import cluster_complaints_by_text
+from ..ai import classify_complaint as ai_classify
+from ..ai.priority import get_urgency_score
 
 # Simple wrapper to mimic Complaint object interface expected by clustering service
 ComplaintWrapper = namedtuple("ComplaintWrapper", ["id", "description", "category", "ward"])
