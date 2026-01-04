@@ -70,7 +70,7 @@ export default function Navbar() {
             <nav className="nav-theme px-4 md:px-8 py-0 shadow-lg overflow-x-auto">
                 <ul className="hidden md:flex items-center gap-1 min-w-max">
                     <li>
-                        <Link href="/" className="px-4 py-3 hover:bg-[var(--nav-hover)] cursor-pointer text-sm font-medium flex items-center gap-2 border-b-4 border-transparent hover:border-[var(--accent)] transition-all">
+                        <Link href="/" className="px-4 py-3 hover:bg-[var(--nav-text)] hover:text-[var(--nav-bg)] cursor-pointer text-sm font-medium flex items-center gap-2 border-b-4 border-transparent hover:border-[var(--accent)] transition-all">
                             <Home size={16} /> Home
                         </Link>
                     </li>
@@ -114,10 +114,10 @@ export default function Navbar() {
                     <div className="flex-grow"></div>
 
                     {user ? (
-                        <li className="px-4 py-3 bg-[var(--background-tertiary)] dark:bg-slate-800 flex items-center gap-3">
+                        <li className="px-4 py-3 bg-[var(--background-tertiary)] flex items-center gap-3">
                             <div className="flex flex-col text-right leading-tight">
                                 <span className="text-xs text-theme-muted">Welcome,</span>
-                                <span className="font-semibold text-sm text-white">{user.name}</span>
+                                <span className="font-semibold text-sm text-theme">{user.name}</span>
                             </div>
                             <button
                                 onClick={handleLogout}

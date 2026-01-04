@@ -7,7 +7,10 @@ export default function Home() {
   return (
     <div className="bg-theme min-h-screen">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 dark:from-slate-900 dark:to-blue-900 text-white py-16 px-6 text-center relative overflow-hidden">
+      <div
+        className="text-white py-16 px-6 text-center relative overflow-hidden"
+        style={{ background: 'var(--gradient-hero)' }}
+      >
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
@@ -26,7 +29,7 @@ export default function Home() {
             </Link>
             <Link
               href="/citizen/community"
-              className="bg-transparent border-2 border-white hover:bg-white hover:text-blue-900 text-white font-bold py-3 px-8 rounded transition"
+              className="bg-white/10 hover:bg-white/20 border-2 border-white/50 hover:border-white text-white font-bold py-3 px-8 rounded transition backdrop-blur-sm"
             >
               View Community Issues
             </Link>
@@ -35,7 +38,7 @@ export default function Home() {
       </div>
 
       {/* Key Benefits Strip */}
-      <div className="card-theme-elevated -mt-8 mx-4 md:mx-auto max-w-5xl rounded-lg p-6 relative z-20 grid grid-cols-2 md:grid-cols-4 gap-8 text-center border-t-4 border-green-500">
+      <div className="card-theme-elevated -mt-8 mx-4 md:mx-auto max-w-5xl rounded-lg p-6 relative z-20 grid grid-cols-2 md:grid-cols-4 gap-8 text-center border-t-4 border-[var(--success)]">
         <div className="flex flex-col items-center">
           <Shield className="text-[var(--primary)] mb-2" size={32} />
           <div className="text-sm text-theme-secondary font-semibold">Secure & Transparent</div>
@@ -88,10 +91,10 @@ export default function Home() {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-[var(--nav-bg)] py-12 px-4">
+      <div className="bg-[var(--background-tertiary)] py-12 px-4 border-t border-[var(--card-border)]">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">Ready to Make Your Voice Heard?</h3>
-          <p className="text-blue-200 dark:text-blue-300 mb-6">Join thousands of citizens working together for a better community.</p>
+          <h3 className="text-2xl font-bold text-theme mb-4">Ready to Make Your Voice Heard?</h3>
+          <p className="text-theme-secondary mb-6">Join thousands of citizens working together for a better community.</p>
           <Link
             href="/login"
             className="inline-block btn-accent font-bold py-3 px-8 rounded shadow-lg transition"

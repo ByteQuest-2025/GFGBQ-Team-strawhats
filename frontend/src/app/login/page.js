@@ -51,7 +51,10 @@ export default function LoginPage() {
         <div className="min-h-[80vh] bg-theme flex items-center justify-center py-12 px-4">
             <div className="max-w-4xl w-full card-theme-elevated rounded-xl overflow-hidden flex flex-col md:flex-row">
                 {/* Left Side - Info */}
-                <div className="md:w-1/2 bg-gradient-to-br from-blue-900 to-blue-700 dark:from-slate-800 dark:to-blue-900 p-8 text-white flex flex-col justify-center">
+                <div
+                    className="md:w-1/2 p-8 text-white flex flex-col justify-center"
+                    style={{ background: 'var(--gradient-hero)' }}
+                >
                     <h3 className="text-2xl font-bold mb-4">Welcome to Samadhan Setu</h3>
                     <p className="mb-6 opacity-90">Please login to continue using the grievance redressal services.</p>
                     <ul className="space-y-3 text-sm opacity-80">
