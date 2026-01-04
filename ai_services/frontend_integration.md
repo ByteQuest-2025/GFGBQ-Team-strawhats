@@ -7,6 +7,7 @@ We have **three** AI-powered features available:
 1.  **Similarity Detection**: Finds duplicate complaints.
 2.  **Auto-Classification**: Suggests the complaint category.
 3.  **Transparent Priority**: Calculates urgency, severity, and SLA deadlines.
+4.  **AI-Generated Insights**: Detects recurring patterns/clusters (Admin only).
 
 ---
 
@@ -62,6 +63,27 @@ export function useAIServices() {
 
   return { classify, getPriority };
 }
+```
+
+---
+
+## Feature 4: AI-Generated Insights (Admin)
+
+**Goal**: Show administrators recurring patterns (e.g., systemic water issues in a specific ward).
+
+**Endpoint**: `GET /api/admin/insights/clusters`
+```json
+// Response (Array of Insights)
+[
+  {
+    "insight_name": "Recurring Water & Leakage patterns in Ward 5",
+    "category": "Water Supply",
+    "support_count": 3,
+    "locations": ["Ward 5"],
+    "complaint_ids": [1, 2, 3],
+    "top_keywords": ["water", "leakage", "pipe", "market"]
+  }
+]
 ```
 
 

@@ -12,7 +12,8 @@ This guide explains how to hook up **all three** AI-powered features.
 from app.services.ai_bridge import (
     get_similar_complaints,
     classify_complaint,
-    get_urgency_severity  # NEW: Bridge to AI Service 3
+    get_urgency_severity,
+    get_complaint_patterns  # NEW: Bridge to Task #8
 )
 from app.ai.priority import calculate_hybrid_priority # NEW: Formula Logic
 ```
@@ -60,5 +61,24 @@ def create_complaint(complaint: ComplaintCreate):
 - **Weights**: 40% Urgency | 40% Severity | 20% Crowd.
 - **Guardrail**: "Low/Low" cases are capped and cannot become "High" priority.
 - **SLA**: 24h (High) | 72h (Medium) | 7 Days (Low).
+
+---
+
+## 4. Feature 4: AI-Generated Insights (Clustering)
+
+Used in the Admin Dashboard for strategic oversight.
+
+```python
+# In routers/admin.py
+@router.get("/insights")
+def fetch_trends(db: Session = Depends(get_db)):
+    complaints = db.query(Complaint).all()
+    # Prepare data for AI Bridge
+    data = [{"id": c.id, "text": c.description, ...} for c in complaints]
+    
+    # Get patterns from AI
+    insights = get_complaint_patterns(data)
+    return insights
+```
 
 

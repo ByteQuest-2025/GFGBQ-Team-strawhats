@@ -14,10 +14,9 @@ from ..models import (
     Department, CategoryMapping, SLARule
 )
 from ..schemas import (
-    ComplaintStats, DepartmentCreate, DepartmentResponse, DepartmentUpdate,
-    CategoryMappingCreate, CategoryMappingResponse,
     SLARuleCreate, SLARuleResponse, UserResponse
 )
+from ..services.ai_bridge import ai_bridge
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -86,6 +85,39 @@ async def get_quick_stats(
         "active_users": users,
         "resolution_rate": resolution_rate
     }
+
+
+@router.get("/insights/clusters")
+async def get_ai_insights(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Get AI-generated summaries of recurring patterns using clustering.
+    Analytical tool for admins (Task #8).
+    """
+    # 1. Fetch relevant complaints (e.g., last 100 or all pending)
+    complaints = db.query(Complaint).order_by(Complaint.created_at.desc()).limit(200).all()
+    
+    if not complaints or len(complaints) < 2:
+        return []
+    
+    # 2. Prepare data for AI Bridge
+    complaint_data = [
+        {
+            "id": c.id,
+            "text": c.description,
+            "ward": c.ward,
+            "category": c.category,
+            "location": c.location
+        }
+        for c in complaints
+    ]
+    
+    # 3. Call AI Service via Bridge
+    insights = ai_bridge.get_complaint_patterns(complaint_data)
+    
+    return insights
 
 
 # --- Department Management ---

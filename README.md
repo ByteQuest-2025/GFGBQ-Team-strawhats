@@ -23,6 +23,7 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 - **Real-time Tracking**: Citizens can track their complaint status
 - **Department Dashboard**: Officers can manage and resolve assigned complaints
 - **Community Upvoting**: Public complaints can be upvoted to boost priority
+- **AI-Generated Insights**: Recurring issue detection using semantic clustering (Task #8)
 - **Admin Analytics**: Comprehensive statistics and department management
 
 ## 🏗️ Architecture
@@ -187,6 +188,15 @@ We have implemented **two advanced AI services** to make the platform intelligen
     *   Locality-wise heatmaps (which areas have most issues)
     *   Recurring issue detection (identify systemic problems)
     *   Time-trend analysis
+
+### 6. AI-Generated Insights Service (Task #8) 🆕
+*   **Goal**: Find hidden "clusters" of problems for proactive governance.
+*   **Tech**: **SBERT (`all-MiniLM-L6-v2`)** + **K-Means Clustering**.
+*   **Logic**:
+    1.  Groups complaints using a dynamic K-Means approach (`K = sqrt(N)`).
+    2.  Extracts top keywords and locations from each cluster.
+    3.  Generates descriptive summaries like "Recurring Pipe issues in Ward 5".
+    4.  Excludes "Isolated Issues" (noise) to highlight meaningful trends.
 
 ### Why Hybrid ML + Rule-Based?
 > Public governance systems require reliability. ML predictions are used only when confidence is high. Otherwise, deterministic rules ensure safe, explainable decision-making.
