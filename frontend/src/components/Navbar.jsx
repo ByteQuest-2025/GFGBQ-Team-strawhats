@@ -25,12 +25,12 @@ export default function Navbar() {
                     <span>Samadhan Setu Portal</span>
                 </div>
                 <div className="flex gap-4 items-center">
-                    <span className="cursor-pointer hover:text-[var(--primary)] hidden sm:inline">Skip to Main Content</span>
-                    <span className="text-theme-muted hidden sm:inline">|</span>
-                    <button className="hover:text-theme font-bold">A+</button>
-                    <button className="hover:text-theme">A</button>
-                    <button className="hover:text-theme text-xs">A-</button>
-                    <span className="text-theme-muted">|</span>
+                    {/* <span className="cursor-pointer hover:text-[var(--primary)] hidden sm:inline">Skip to Main Content</span>
+                        <span className="text-theme-muted hidden sm:inline">|</span>
+                        <button className="hover:text-theme font-bold">A+</button>
+                        <button className="hover:text-theme">A</button>
+                        <button className="hover:text-theme text-xs">A-</button> */}
+                    {/* <span className="text-theme-muted">|</span> */}
                     <ThemeToggle />
                     <span className="text-theme-muted hidden sm:inline">|</span>
                     <button className="flex items-center gap-1 hover:text-[var(--primary)] hidden sm:flex">
