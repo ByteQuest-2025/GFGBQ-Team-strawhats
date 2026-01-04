@@ -92,6 +92,11 @@ export default function TrackGrievance() {
                                     <div className="text-xs text-theme-muted font-medium">
                                         Priority: {complaint.priority}
                                     </div>
+                                    {complaint.deadline && (
+                                        <div className={`text-xs font-medium ${new Date(complaint.deadline) < new Date() ? 'text-red-600' : 'text-blue-600'}`}>
+                                            Due: {new Date(complaint.deadline).toLocaleDateString()}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

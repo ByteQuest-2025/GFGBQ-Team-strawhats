@@ -186,6 +186,7 @@ export default function DepartmentDashboard() {
                                 <th className="p-4 border-b border-theme">ID</th>
                                 <th className="p-4 border-b border-theme">Priority (AI)</th>
                                 <th className="p-4 border-b border-theme">Issue / Location</th>
+                                <th className="p-4 border-b border-theme">Deadline</th>
                                 <th className="p-4 border-b border-theme text-center">Votes</th>
                                 <th className="p-4 border-b border-theme">Status</th>
                                 <th className="p-4 border-b border-theme text-center">Action</th>
@@ -208,6 +209,13 @@ export default function DepartmentDashboard() {
                                             <div className="text-xs text-theme-muted mt-1 flex items-center gap-1">
                                                 <MapPin size={12} /> {complaint.location}
                                             </div>
+                                        </td>
+                                        <td className="p-4">
+                                            {complaint.deadline ? (
+                                                <span className={`text-xs font-medium ${new Date(complaint.deadline) < new Date() ? 'text-red-600' : 'text-blue-600'}`}>
+                                                    {new Date(complaint.deadline).toLocaleDateString()}
+                                                </span>
+                                            ) : '-'}
                                         </td>
                                         <td className="p-4 text-center">
                                             <span className="font-bold text-[var(--accent)]">{complaint.upvotes || 0}</span>

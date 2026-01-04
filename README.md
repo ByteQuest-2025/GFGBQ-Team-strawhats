@@ -13,6 +13,8 @@ Samadhan Setu is an intelligent grievance redressal platform that uses AI to aut
 
 ### Key Features
 
+- **🆕 Proof of Resolution**: Officers can upload multiple images as verifiable proof of fixed issues
+- **🆕 Handle Dashboard**: Detailed workspace for officers with SLA timers and citizen communication
 - **AI-Powered Classification**: Hybrid AI (DistilBERT + Rules) for accurate categorization
 - **Similarity Detection**: Prevents duplicate complaints using SBERT Semantic Search
 - **🆕 AI Auto-Assignment**: Load-balanced team assignment with SLA-aware reassignment
@@ -128,8 +130,9 @@ Frontend will run at: `http://localhost:3000`
 ### Department Officer Flow
 1. Login as department officer
 2. View complaints sorted by priority
-3. Update status (Pending → In Progress → Resolved)
-4. Add remarks for transparency
+3. Click "Handle" on a complaint to open the detailed workspace
+4. Upload proof images and add resolution remarks
+5. Mark as "Resolved" to notify the citizen
 
 ### Admin Flow
 1. Login as admin

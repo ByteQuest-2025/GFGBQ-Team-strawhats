@@ -121,7 +121,7 @@ export default function Navbar() {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="bg-[var(--error)] hover:bg-red-700 text-white px-3 py-1 rounded text-xs ml-2 transition"
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs ml-2 transition shadow-sm font-medium"
                             >
                                 Logout
                             </button>

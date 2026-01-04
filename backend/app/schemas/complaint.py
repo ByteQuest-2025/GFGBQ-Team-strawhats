@@ -62,6 +62,7 @@ class ComplaintResponse(ComplaintBase):
     created_at: datetime
     updated_at: datetime
     resolved_at: Optional[datetime] = None
+    deadline: Optional[datetime] = None  # SLA deadline
     status_logs: Optional[List[StatusLogResponse]] = []
     user: Optional[UserBasicResponse] = None  # Citizen details
     

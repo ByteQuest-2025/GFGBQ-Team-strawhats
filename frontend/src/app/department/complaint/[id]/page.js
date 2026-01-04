@@ -170,13 +170,30 @@ export default function HandleComplaint() {
                 </div>
 
                 {/* SLA Timer */}
-                <div className="flex items-center gap-3 bg-[var(--error-bg)] border border-red-200 dark:border-red-900 px-4 py-3 rounded-xl shadow-sm">
-                    <Clock className="text-[var(--error)] animate-pulse" size={24} />
-                    <div>
-                        <p className="text-xs text-[var(--error)] font-bold uppercase tracking-wider">SLA Deadline</p>
-                        <p className="text-lg font-bold text-[var(--error)] font-mono">02 Days : 04 Hrs</p>
-                    </div>
-                </div>
+                {complaint.deadline && (() => {
+                    const now = new Date();
+                    const deadline = new Date(complaint.deadline);
+                    const diff = deadline - now;
+                    const isOverdue = diff < 0;
+                    const absDiff = Math.abs(diff);
+                    const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((absDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const timeText = `${days.toString().padStart(2, '0')} Days : ${hours.toString().padStart(2, '0')} Hrs`;
+
+                    return (
+                        <div className={`flex items-center gap-3 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-800'} border px-4 py-3 rounded-xl shadow-sm`}>
+                            <Clock className={`${isOverdue ? 'text-red-600' : 'text-blue-600'} animate-pulse`} size={24} />
+                            <div>
+                                <p className={`text-xs ${isOverdue ? 'text-red-600' : 'text-blue-600'} font-bold uppercase tracking-wider`}>
+                                    {isOverdue ? 'OVERDUE' : 'SLA Deadline'}
+                                </p>
+                                <p className={`text-lg font-bold ${isOverdue ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'} font-mono`}>
+                                    {isOverdue ? `-${timeText}` : timeText}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

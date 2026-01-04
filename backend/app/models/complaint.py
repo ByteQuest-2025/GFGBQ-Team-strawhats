@@ -54,6 +54,7 @@ class Complaint(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
+    deadline = Column(DateTime, nullable=True)  # SLA deadline based on priority
     
     # Relationships
     user = relationship("User", back_populates="complaints", foreign_keys=[user_id])
