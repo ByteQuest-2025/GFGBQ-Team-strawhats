@@ -19,7 +19,8 @@ from .priority import (
     PriorityCalculator, 
     priority_calculator, 
     calculate_priority, 
-    get_urgency_score
+    get_urgency_score,
+    calculate_hybrid_priority
 )
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "priority_calculator",
     "calculate_priority",
     "get_urgency_score",
+    "calculate_hybrid_priority",
 ]
 
 

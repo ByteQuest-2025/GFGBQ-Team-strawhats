@@ -14,7 +14,9 @@ from ..models import (
     Department, CategoryMapping, SLARule
 )
 from ..schemas import (
-    SLARuleCreate, SLARuleResponse, UserResponse
+    SLARuleCreate, SLARuleResponse, UserResponse, ComplaintStats,
+    DepartmentCreate, DepartmentUpdate, DepartmentResponse,
+    CategoryMappingCreate, CategoryMappingResponse
 )
 from ..services.ai_bridge import ai_bridge
 

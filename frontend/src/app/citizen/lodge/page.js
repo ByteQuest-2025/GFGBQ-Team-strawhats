@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { complaintsAPI } from '@/lib/api';
+import { useAIServices } from '@/hooks/useAIServices';
 import { FileText, MapPin, CheckCircle, Activity, Loader2, Navigation, ImagePlus, X, AlertCircle } from 'lucide-react';
 
 export default function LodgeGrievance() {
@@ -17,10 +18,8 @@ export default function LodgeGrievance() {
     const [isPublic, setIsPublic] = useState(true);
     const [images, setImages] = useState([]);
 
-    const [aiCategory, setAiCategory] = useState('');
-    const [aiPriority, setAiPriority] = useState('Low');
-    const [aiConfidence, setAiConfidence] = useState(0);
-    const [aiLoading, setAiLoading] = useState(false);
+    // Use AI Hook
+    const { classify, classification, loading: aiLoading } = useAIServices();
 
     const [loading, setLoading] = useState(false);
     const [locationLoading, setLocationLoading] = useState(false);
@@ -36,32 +35,14 @@ export default function LodgeGrievance() {
 
     // AI Preview - debounced
     useEffect(() => {
-        const timer = setTimeout(async () => {
+        const timer = setTimeout(() => {
             if (description.length >= 10) {
-                setAiLoading(true);
-                try {
-                    const result = await complaintsAPI.previewAI(description);
-                    setAiCategory(result.category || 'General');
-                    setAiPriority(result.priority || 'Low');
-                    setAiConfidence(Math.round(result.confidence) || 0);
-                } catch (err) {
-                    console.log('AI preview failed:', err);
-                    // Show fallback values
-                    setAiCategory('General');
-                    setAiPriority('Medium');
-                    setAiConfidence(70);
-                } finally {
-                    setAiLoading(false);
-                }
-            } else {
-                setAiCategory('');
-                setAiPriority('Low');
-                setAiConfidence(0);
+                classify(description);
             }
         }, 800);
 
         return () => clearTimeout(timer);
-    }, [description]);
+    }, [description, classify]);
 
     // Auto-detect location with IP fallback
     const getAutoLocation = useCallback(async () => {
@@ -258,9 +239,9 @@ export default function LodgeGrievance() {
                             <div className="w-full p-3 bg-theme-card border border-theme rounded-lg font-semibold text-theme flex items-center justify-between shadow-sm">
                                 {aiLoading ? (
                                     <span className="text-theme-muted">Analyzing...</span>
-                                ) : aiCategory ? (
+                                ) : classification?.category ? (
                                     <>
-                                        <span className="text-[var(--primary)]">{aiCategory}</span>
+                                        <span className="text-[var(--primary)]">{classification.category}</span>
                                         <CheckCircle size={16} className="text-[var(--success)]" />
                                     </>
                                 ) : (
@@ -272,14 +253,14 @@ export default function LodgeGrievance() {
                         <div>
                             <label className="block text-xs font-medium text-theme-muted mb-1">Priority Assessment</label>
                             <div className="w-full p-3 bg-theme-card border border-theme rounded-lg font-semibold flex items-center justify-between shadow-sm">
-                                <span className={`${aiPriority === 'High' ? 'text-[var(--error)]' :
-                                    aiPriority === 'Medium' ? 'text-[var(--accent)]' : 'text-[var(--primary)]'
+                                <span className={`${classification?.priority === 'High' ? 'text-[var(--error)]' :
+                                    classification?.priority === 'Medium' ? 'text-[var(--accent)]' : 'text-[var(--primary)]'
                                     }`}>
-                                    {aiLoading ? 'Calculating...' : `${aiPriority} Priority`}
+                                    {aiLoading ? 'Calculating...' : (classification?.priority ? `${classification.priority} Priority` : 'Low Priority')}
                                 </span>
-                                {aiConfidence > 0 && (
+                                {classification?.confidence > 0 && (
                                     <span className="text-xs text-theme-muted bg-theme-tertiary px-2 py-1 rounded">
-                                        {aiConfidence}% confident
+                                        {Math.round(classification.confidence)}% confident
                                     </span>
                                 )}
                             </div>

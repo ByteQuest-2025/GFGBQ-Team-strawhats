@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { adminAPI } from '@/lib/api';
-import { BarChart3, AlertTriangle, Users, CheckCircle, Loader2 } from 'lucide-react';
+import { useAIServices } from '@/hooks/useAIServices';
+import { BarChart3, AlertTriangle, Users, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 
 export default function AdminDashboard() {
     const { user, loading: authLoading } = useAuth();
@@ -15,6 +16,8 @@ export default function AdminDashboard() {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const { getInsights, insights, loading: insightsLoading } = useAIServices();
 
     useEffect(() => {
         if (!authLoading && (!user || user.role !== 'admin')) {
@@ -38,6 +41,9 @@ export default function AdminDashboard() {
             setStats(statsData);
             setSummary(summaryData);
             setDepartments(deptsData);
+
+            // Non-blocking AI insights fetch
+            getInsights();
         } catch (err) {
             setError(err.message || 'Failed to fetch data');
         } finally {
@@ -87,6 +93,46 @@ export default function AdminDashboard() {
                         {summary?.resolution_rate || 0}%
                     </div>
                 </div>
+            </div>
+
+            {/* AI Insights Section */}
+            <div className="mb-8">
+                <h3 className="font-bold text-theme mb-4 flex items-center gap-2">
+                    <Sparkles size={20} className="text-[var(--primary)]" /> AI-Generated Insights
+                </h3>
+                {insightsLoading ? (
+                    <div className="p-4 bg-theme-card border border-theme rounded-lg flex items-center justify-center gap-2 text-theme-muted">
+                        <Loader2 className="animate-spin" size={16} /> Analyzing patterns...
+                    </div>
+                ) : insights && insights.length > 0 ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {insights.map((insight, idx) => (
+                            <div key={idx} className="p-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/10 dark:to-blue-900/10 rounded-lg border border-purple-200 dark:border-purple-800 shadow-sm">
+                                <h4 className="font-semibold text-theme mb-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-purple-500" />
+                                    {insight.insight_name}
+                                </h4>
+                                <div className="text-sm text-theme-secondary mb-3">
+                                    Identified {insight.support_count} similar complaints in {insight.locations.join(', ')}.
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <span className="text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border border-theme shadow-sm">
+                                        Category: {insight.category}
+                                    </span>
+                                    {insight.top_keywords?.map((kw, k) => (
+                                        <span key={k} className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">
+                                            #{kw}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-6 bg-theme-card border border-theme rounded-lg text-center text-theme-muted italic">
+                        No significant recurring patterns detected yet.
+                    </div>
+                )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">

@@ -21,7 +21,10 @@ from ..schemas import (
     ComplaintCreate, ComplaintResponse, ComplaintListResponse,
     ComplaintAIResponse
 )
-from ..ai import process_complaint, classify_complaint, calculate_priority
+
+from ..ai import process_complaint # Keep for backward compat if needed
+from ..services.ai_bridge import ai_bridge
+from ..ai.priority import calculate_hybrid_priority
 
 # Create uploads directory for citizen images
 CITIZEN_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "citizen")
@@ -41,7 +44,22 @@ async def submit_complaint(
     AI automatically classifies category and assigns priority
     """
     # AI Processing
-    ai_result = process_complaint(complaint_data.description)
+    # 1. Classify
+    classification = ai_bridge.classify_complaint(complaint_data.description)
+    ai_result = {
+        'category': classification['category'],
+        'confidence': classification['confidence']
+    }
+    
+    # 2. Detect Levels
+    levels = ai_bridge.get_urgency_severity(complaint_data.description)
+    
+    # 3. Calculate Priority
+    priority_data = calculate_hybrid_priority(
+        levels['urgency'],
+        levels['severity'],
+        0 # New complaints have 0 upvotes
+    )
     
     # Find department for routing
     category_mapping = db.query(CategoryMapping).filter(
@@ -66,8 +84,8 @@ async def submit_complaint(
         ward=complaint_data.ward,
         latitude=complaint_data.latitude,
         longitude=complaint_data.longitude,
-        priority=priority_map.get(ai_result['priority'], ComplaintPriority.LOW),
-        urgency_score=ai_result['urgency_score'],
+        priority=priority_map.get(priority_data['priority'], ComplaintPriority.LOW),
+        urgency_score=int(priority_data['score'] * 3.33), # Map 3.0 scale to ~10 scale roughly or just store raw
         ai_confidence=ai_result['confidence'],
         status=ComplaintStatus.PENDING,
         department_id=department_id,
@@ -113,7 +131,19 @@ async def submit_complaint(
     db.add(status_log)
     db.commit()
     
+    ComplaintAIResponse.model_validate(new_complaint)
     return ComplaintResponse.model_validate(new_complaint)
+
+@router.post("/verify-priority")
+async def verify_priority_check(
+    urgency: str = Query(..., enum=["Low", "Medium", "High"]),
+    severity: str = Query(..., enum=["Low", "Medium", "High"]),
+    upvotes: int = Query(0, ge=0)
+):
+    """
+    Check priority score and SLA based on inputs (Transparent AI)
+    """
+    return calculate_hybrid_priority(urgency, severity, upvotes)
 
 
 @router.post("/{complaint_id}/upload-images")
@@ -191,14 +221,25 @@ async def preview_ai_classification(
     Preview AI classification before submitting
     Useful for showing real-time category detection in the form
     """
-    ai_result = process_complaint(description)
+    # 1. Classify
+    classification = ai_bridge.classify_complaint(description)
+    
+    # 2. Detect Levels
+    levels = ai_bridge.get_urgency_severity(description)
+    
+    # 3. Calculate Priority
+    priority_data = calculate_hybrid_priority(
+        levels['urgency'],
+        levels['severity'],
+        0 
+    )
     
     return ComplaintAIResponse(
-        category=ai_result['category'],
-        priority=ai_result['priority'],
-        urgency_score=ai_result['urgency_score'],
-        confidence=ai_result['confidence'],
-        department_id=None  # Not looking up department for preview
+        category=classification['category'],
+        priority=priority_data['priority'],
+        urgency_score=int(priority_data['score'] * 3.33),
+        confidence=classification['confidence'],
+        department_id=None
     )
 
 
